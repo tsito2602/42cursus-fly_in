@@ -20,6 +20,6 @@ class Zone(BaseModel):
     x: int = Field(ge=0)
     y: int = Field(ge=0)
     zone_role: ZoneRole
-    zone_type: ZoneType
-    color: str
-    capacity: int | None = Field(ge=1)
+    zone_type: ZoneType = Field(default=ZoneType.NORMAL)
+    color: str | None
+    capacity: int | None = Field(default=1, ge=1)
