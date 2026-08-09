@@ -14,20 +14,11 @@ class Graph(BaseModel):
     def validate_references(self) -> "Graph":
         zone_names = set(self.zones)
 
-        for connection in self.connections:
-            unknown = {connection.zone_a, connection.zone_b} - zone_names
+        if self.start not in zone_names:
+            raise ValueError(f"Unknown start zone: '{self.start}'")
 
-            if unknown:
-                names = ", ".join(sorted(unknown))
-                raise ValueError(
-                    f"Connection references unknown zones: {names}"
-                )
-
-            if self.start not in zone_names:
-                raise ValueError(f"Unknown start zone: '{self.start}'")
-
-            if self.end not in zone_names:
-                raise ValueError(f"Unknown end zone: '{self.end}'")
+        if self.end not in zone_names:
+            raise ValueError(f"Unknown end zone: '{self.end}'")
 
         return self
 

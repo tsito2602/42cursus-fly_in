@@ -17,8 +17,8 @@ class ZoneType(Enum):
 
 class Zone(BaseModel):
     name: str = Field(min_length=1)
-    x: int = Field(ge=0)
-    y: int = Field(ge=0)
+    x: int
+    y: int
     zone_role: ZoneRole
     zone_type: ZoneType = Field(default=ZoneType.NORMAL)
     color: str | None
