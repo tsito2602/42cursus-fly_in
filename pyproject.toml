@@ -1,5 +1,5 @@
 [project]
-name = "42cursus-fly-in"
+name = "fly-in"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
@@ -12,6 +12,12 @@ dev = [
     "mypy>=2.3.0",
     "pytest>=9.1.1",
 ]
+
+[project.scripts]
+fly-in = "fly_in.main:main"
+
+[tool.uv]
+package = true
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
