@@ -113,11 +113,6 @@ class MapParser:
 
             content = content.split("#", 1)[0].strip()
             if not content:
-                if line_number == 1:
-                    raise LineParsingError(
-                        "The first line must define 'nb_drones'.",
-                        line_number,
-                    )
                 continue
 
             try:
@@ -127,14 +122,14 @@ class MapParser:
                 key, value = content.split(":", 1)
                 key = key.strip()
                 value = value.strip()
-                self._apply_field(state, key, value, line_number)
+                self._apply_field(state, key, value)
             except ValueError as error:
                 raise LineParsingError(str(error), line_number) from error
 
-        if last_line_number == 0:
+        if state.nb_drones is None:
             raise LineParsingError(
-                "The first line must define 'nb_drones'.",
-                1,
+                "The first non-comment line must define 'nb_drones'.",
+                last_line_number + 1 if last_line_number else 1,
             )
 
         missing = [
@@ -157,29 +152,30 @@ class MapParser:
         state: _ParseState,
         key: str,
         value: str,
-        line_number: int,
     ) -> None:
         """Parse one field and apply it to the accumulated map state."""
+
+        self._validate_first_field(state, key)
 
         match key:
             case "nb_drones":
                 self._mark_single_field(state, key)
                 state.nb_drones = self._parse_positive_int(value, key)
             case "start_hub" | "end_hub" | "hub":
-                self._validate_first_field(key, line_number)
                 self._mark_single_field(state, key)
                 self._add_zone(state, key, value)
             case "connection":
-                self._validate_first_field(key, line_number)
                 self._add_connection(state, value)
             case _:
                 raise ValueError(f"Unknown key '{key}'.")
 
-    def _validate_first_field(self, key: str, line_number: int) -> None:
-        """Ensure that the first physical line defines the drone count."""
+    def _validate_first_field(self, state: _ParseState, key: str) -> None:
+        """Ensure that the first non-comment line defines the drone count."""
 
-        if line_number == 1 and key != "nb_drones":
-            raise ValueError("The first line must define 'nb_drones'.")
+        if state.nb_drones is None and key != "nb_drones":
+            raise ValueError(
+                "The first non-comment line must define 'nb_drones'."
+            )
 
     def _mark_single_field(self, state: _ParseState, key: str) -> None:
         """Reject a repeated field that may appear only once."""
