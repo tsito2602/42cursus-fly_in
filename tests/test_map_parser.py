@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
-from fly_in.parsing.map_parser import LineParsingError, MapParser, ParsingError
+from fly_in.parsing import LineParsingError, MapParser, ParsingError
 
 
 def load_map(tmp_path: Path, content: str) -> Map:
