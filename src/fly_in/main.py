@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from fly_in.parsing.map_parser import MapParser, ParsingError
+from fly_in.parsing import MapParser, ParsingError
 
 
 def get_map_file() -> str:
