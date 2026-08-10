@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic import ValidationError
-from fly_in.models import Graph, Zone, ZoneRole, ZoneType, Connection
+from fly_in.models import Map, Zone, ZoneRole, ZoneType, Connection
 
 SINGLE_FIELDS = {"nb_drones", "start_hub", "end_hub"}
 
@@ -82,13 +82,13 @@ class MapParser:
 
         self._file = Path(file)
 
-    def load(self) -> Graph:
+    def load(self) -> Map:
         """Load, parse, and validate the configured map file."""
 
         try:
             with self._file.open("rb") as lines:
                 parsed_data = self._parse_lines(lines)
-                return Graph.model_validate(parsed_data)
+                return Map.model_validate(parsed_data)
         except OSError as error:
             raise ParsingError(f"Unable to read map file: {error}") from error
         except ValidationError as error:
