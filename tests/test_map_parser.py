@@ -3,11 +3,11 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from fly_in.models import Graph, Zone, ZoneRole, ZoneType
+from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.parsing.map_parser import LineParsingError, MapParser, ParsingError
 
 
-def load_map(tmp_path: Path, content: str) -> Graph:
+def load_map(tmp_path: Path, content: str) -> Map:
     map_file = tmp_path / "map.txt"
     map_file.write_text(content, encoding="utf-8")
     return MapParser(str(map_file)).load()
@@ -35,20 +35,34 @@ connection: middle-end
     assert graph.connections[1].capacity == 1
 
 
+def test_allows_comments_before_nb_drones(tmp_path: Path) -> None:
+    graph = load_map(
+        tmp_path,
+        """# map description
+# another comment
+nb_drones: 1
+start_hub: start 0 0
+end_hub: end 1 1
+""",
+    )
+
+    assert graph.nb_drones == 1
+
+
 @pytest.mark.parametrize(
     ("content", "message"),
     [
         (
             "",
-            "Line 1 - The first line must define 'nb_drones'.",
+            "Line 1 - The first non-comment line must define 'nb_drones'.",
         ),
         (
-            "# comment\nnb_drones: 1\n",
-            "Line 1 - The first line must define 'nb_drones'.",
+            "# comment\nhub: a 0 0\n",
+            "Line 2 - The first non-comment line must define 'nb_drones'.",
         ),
         (
             "hub: a 0 0\n",
-            "Line 1 - The first line must define 'nb_drones'.",
+            "Line 1 - The first non-comment line must define 'nb_drones'.",
         ),
         (
             "nb_drones: one\n",
@@ -169,7 +183,7 @@ def test_graph_validates_references_without_connections() -> None:
     )
 
     with pytest.raises(ValidationError, match="Unknown start zone: 'start'"):
-        Graph(
+        Map(
             nb_drones=1,
             zones={end.name: end},
             connections=[],
