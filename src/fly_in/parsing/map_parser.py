@@ -42,24 +42,23 @@ class MapParser:
 
         try:
             with self._file.open("rb") as lines:
-                builder = self._parse_lines(lines)
-                return builder.build()
+                return self._parse_map(lines)
         except OSError as error:
             raise ParsingError(f"Unable to read map file: {error}") from error
         except ValidationError as error:
             raise ParsingError(str(error)) from error
 
-    def _parse_lines(self, lines: Iterable[bytes]) -> MapBuilder:
-        """Parse all lines into a new map builder."""
+    def _parse_map(self, lines: Iterable[bytes]) -> Map:
+        """Parse all lines into a validated map."""
 
         builder = MapBuilder()
         last_line_number = 0
 
-        for line_number, raw_content in enumerate(lines, start=1):
+        for line_number, line in enumerate(lines, start=1):
             last_line_number = line_number
 
             try:
-                field = self._parse_line(raw_content)
+                field = self._parse_line(line)
                 if field is None:
                     continue
 
@@ -87,7 +86,7 @@ class MapParser:
                 last_line_number + 1,
             )
 
-        return builder
+        return builder.build()
 
     def _parse_line(self, raw_content: bytes) -> tuple[str, str] | None:
         """Parse one physical line into a key and value."""
