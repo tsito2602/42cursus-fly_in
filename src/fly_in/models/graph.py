@@ -3,7 +3,7 @@ from .zone import Zone
 from .connection import Connection
 
 
-class Map(BaseModel):
+class Graph(BaseModel):
     nb_drones: int = Field(ge=1)
     zones: dict[str, Zone]
     connections: list[Connection]
@@ -11,7 +11,7 @@ class Map(BaseModel):
     end: str
 
     @model_validator(mode="after")
-    def validate_references(self) -> "Map":
+    def validate_references(self) -> "Graph":
         zone_names = set(self.zones)
 
         if self.start not in zone_names:
@@ -23,7 +23,7 @@ class Map(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def validate_connections(self) -> "Map":
+    def validate_connections(self) -> "Graph":
         zone_names = set(self.zones)
         seen: set[frozenset[str]] = set()
 

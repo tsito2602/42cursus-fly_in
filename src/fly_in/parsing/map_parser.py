@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic import ValidationError
-from fly_in.models import Map, Zone, ZoneRole, ZoneType, Connection
+from fly_in.models import Graph, Zone, ZoneRole, ZoneType, Connection
 
 SINGLE_FIELDS = {"nb_drones", "start_hub", "end_hub"}
 
@@ -82,13 +82,13 @@ class MapParser:
 
         self._file = Path(file)
 
-    def load(self) -> Map:
+    def load(self) -> Graph:
         """Load, parse, and validate the configured map file."""
 
         try:
             with self._file.open("rb") as lines:
                 parsed_data = self._parse_lines(lines)
-                return Map.model_validate(parsed_data)
+                return Graph.model_validate(parsed_data)
         except OSError as error:
             raise ParsingError(f"Unable to read map file: {error}") from error
         except ValidationError as error:
@@ -113,6 +113,11 @@ class MapParser:
 
             content = content.split("#", 1)[0].strip()
             if not content:
+                if line_number == 1:
+                    raise LineParsingError(
+                        "The first line must define 'nb_drones'.",
+                        line_number,
+                    )
                 continue
 
             try:
@@ -122,14 +127,14 @@ class MapParser:
                 key, value = content.split(":", 1)
                 key = key.strip()
                 value = value.strip()
-                self._apply_field(state, key, value)
+                self._apply_field(state, key, value, line_number)
             except ValueError as error:
                 raise LineParsingError(str(error), line_number) from error
 
-        if state.nb_drones is None:
+        if last_line_number == 0:
             raise LineParsingError(
-                "The first non-comment line must define 'nb_drones'.",
-                last_line_number + 1 if last_line_number else 1,
+                "The first line must define 'nb_drones'.",
+                1,
             )
 
         missing = [
@@ -152,30 +157,29 @@ class MapParser:
         state: _ParseState,
         key: str,
         value: str,
+        line_number: int,
     ) -> None:
         """Parse one field and apply it to the accumulated map state."""
-
-        self._validate_first_field(state, key)
 
         match key:
             case "nb_drones":
                 self._mark_single_field(state, key)
                 state.nb_drones = self._parse_positive_int(value, key)
             case "start_hub" | "end_hub" | "hub":
+                self._validate_first_field(key, line_number)
                 self._mark_single_field(state, key)
                 self._add_zone(state, key, value)
             case "connection":
+                self._validate_first_field(key, line_number)
                 self._add_connection(state, value)
             case _:
                 raise ValueError(f"Unknown key '{key}'.")
 
-    def _validate_first_field(self, state: _ParseState, key: str) -> None:
-        """Ensure that the first non-comment line defines the drone count."""
+    def _validate_first_field(self, key: str, line_number: int) -> None:
+        """Ensure that the first physical line defines the drone count."""
 
-        if state.nb_drones is None and key != "nb_drones":
-            raise ValueError(
-                "The first non-comment line must define 'nb_drones'."
-            )
+        if line_number == 1 and key != "nb_drones":
+            raise ValueError("The first line must define 'nb_drones'.")
 
     def _mark_single_field(self, state: _ParseState, key: str) -> None:
         """Reject a repeated field that may appear only once."""
