@@ -1,12 +1,12 @@
-"""Load map files and convert their contents into validated graphs."""
+"""Load map files and convert their contents into validated maps."""
 
-from argparse import ArgumentParser
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic import ValidationError
-from fly_in.models import Map, Zone, ZoneRole, ZoneType, Connection
+
+from fly_in.models import Connection, Map, Zone, ZoneRole, ZoneType
 
 SINGLE_FIELDS = {"nb_drones", "start_hub", "end_hub"}
 
@@ -104,8 +104,6 @@ class _MapBuilder:
 class ParsingError(Exception):
     """Report a failure while loading or validating a map file."""
 
-    pass
-
 
 class LineParsingError(ParsingError):
     """Report a map syntax error with its source line number."""
@@ -116,20 +114,8 @@ class LineParsingError(ParsingError):
         super().__init__(f"ParsingError: Line {line_number} - {msg}")
 
 
-def get_map_file() -> str:
-    """Read the map file path from the command-line arguments."""
-
-    parser = ArgumentParser(
-        prog="fly_in", description="Drones are interesting"
-    )
-    parser.add_argument("map", help="map file")
-    args = parser.parse_args()
-
-    return str(args.map)
-
-
 class MapParser:
-    """Parse one map file into a validated graph."""
+    """Parse one map file into a validated map."""
 
     def __init__(self, file: str) -> None:
         """Create a parser for the given map file path."""
@@ -158,24 +144,11 @@ class MapParser:
             last_line_number = line_number
 
             try:
-                content = raw_content.decode("utf-8")
-            except UnicodeDecodeError as error:
-                raise LineParsingError(
-                    "Line must be valid UTF-8.",
-                    line_number,
-                ) from error
+                field = self._parse_line(raw_content)
+                if field is None:
+                    continue
 
-            content = content.split("#", 1)[0].strip()
-            if not content:
-                continue
-
-            try:
-                if ":" not in content:
-                    raise ValueError("Expected KEY: VALUE format.")
-
-                key, value = content.split(":", 1)
-                key = key.strip()
-                value = value.strip()
+                key, value = field
                 self._apply_field(builder, key, value)
             except ValueError as error:
                 raise LineParsingError(str(error), line_number) from error
@@ -200,6 +173,24 @@ class MapParser:
             )
 
         return builder
+
+    def _parse_line(self, raw_content: bytes) -> tuple[str, str] | None:
+        """Parse one physical line into a key and value."""
+
+        try:
+            content = raw_content.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise ValueError("Line must be valid UTF-8.") from error
+
+        content = content.split("#", 1)[0].strip()
+        if not content:
+            return None
+
+        if ":" not in content:
+            raise ValueError("Expected KEY: VALUE format.")
+
+        key, value = content.split(":", 1)
+        return key.strip(), value.strip()
 
     def _apply_field(
         self,
@@ -290,18 +281,15 @@ class MapParser:
                 "normal, blocked, restricted, priority."
             ) from error
 
-        try:
-            return Zone(
-                name=name,
-                x=coordinate_x,
-                y=coordinate_y,
-                zone_role=ZONE_ROLES[key],
-                zone_type=zone_type,
-                color=metadata.get("color"),
-                capacity=capacity,
-            )
-        except (ValueError, ValidationError) as error:
-            raise ValueError(str(error)) from error
+        return Zone(
+            name=name,
+            x=coordinate_x,
+            y=coordinate_y,
+            zone_role=ZONE_ROLES[key],
+            zone_type=zone_type,
+            color=metadata.get("color"),
+            capacity=capacity,
+        )
 
     def _parse_connection(self, value: str) -> Connection:
         """Parse one connection field, including its optional capacity."""
@@ -333,14 +321,11 @@ class MapParser:
         if zone_a == zone_b:
             raise ValueError("Connection endpoints must be different.")
 
-        try:
-            return Connection(
-                zone_a=zone_a,
-                zone_b=zone_b,
-                capacity=capacity,
-            )
-        except (ValueError, ValidationError) as error:
-            raise ValueError(str(error)) from error
+        return Connection(
+            zone_a=zone_a,
+            zone_b=zone_b,
+            capacity=capacity,
+        )
 
     def _split_metadata_suffix(self, value: str) -> tuple[str, str | None]:
         """Separate a field's main value from bracketed metadata."""

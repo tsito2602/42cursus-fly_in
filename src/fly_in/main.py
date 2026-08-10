@@ -1,9 +1,18 @@
-from pydantic import ValidationError
-from fly_in.parsing.map_parser import (
-    MapParser,
-    get_map_file,
-    ParsingError,
-)
+from argparse import ArgumentParser
+
+from fly_in.parsing.map_parser import MapParser, ParsingError
+
+
+def get_map_file() -> str:
+    """Read the map file path from the command-line arguments."""
+
+    parser = ArgumentParser(
+        prog="fly-in", description="Drones are interesting"
+    )
+    parser.add_argument("map", help="map file")
+    args = parser.parse_args()
+
+    return str(args.map)
 
 
 def main() -> None:
@@ -13,7 +22,7 @@ def main() -> None:
     try:
         map = map_parser.load()
         print(map.model_dump_json(indent=2))
-    except (ParsingError, ValidationError) as error:
+    except ParsingError as error:
         print(error)
 
 

@@ -14,7 +14,7 @@ def load_map(tmp_path: Path, content: str) -> Map:
 
 
 def test_loads_valid_map(tmp_path: Path) -> None:
-    graph = load_map(
+    map = load_map(
         tmp_path,
         """nb_drones: 3
 start_hub: start 0 0 [zone=priority color=red]
@@ -25,18 +25,18 @@ connection: middle-end
 """,
     )
 
-    assert graph.nb_drones == 3
-    assert graph.start == "start"
-    assert graph.end == "end"
-    assert graph.zones["start"].zone_role is ZoneRole.START
-    assert graph.zones["start"].zone_type is ZoneType.PRIORITY
-    assert graph.zones["middle"].capacity == 2
-    assert graph.connections[0].capacity == 2
-    assert graph.connections[1].capacity == 1
+    assert map.nb_drones == 3
+    assert map.start == "start"
+    assert map.end == "end"
+    assert map.zones["start"].zone_role is ZoneRole.START
+    assert map.zones["start"].zone_type is ZoneType.PRIORITY
+    assert map.zones["middle"].capacity == 2
+    assert map.connections[0].capacity == 2
+    assert map.connections[1].capacity == 1
 
 
 def test_allows_comments_before_nb_drones(tmp_path: Path) -> None:
-    graph = load_map(
+    map = load_map(
         tmp_path,
         """# map description
 # another comment
@@ -46,7 +46,24 @@ end_hub: end 1 1
 """,
     )
 
-    assert graph.nb_drones == 1
+    assert map.nb_drones == 1
+
+
+def test_load_can_be_called_twice(tmp_path: Path) -> None:
+    map_file = tmp_path / "map.txt"
+    map_file.write_text(
+        """nb_drones: 1
+start_hub: start 0 0
+end_hub: end 1 1
+""",
+        encoding="utf-8",
+    )
+    parser = MapParser(str(map_file))
+
+    first_map = parser.load()
+    second_map = parser.load()
+
+    assert first_map == second_map
 
 
 @pytest.mark.parametrize(
@@ -173,7 +190,7 @@ def test_wraps_file_errors(tmp_path: Path) -> None:
     assert str(error.value).startswith("Unable to read map file: ")
 
 
-def test_graph_validates_references_without_connections() -> None:
+def test_map_validates_references_without_connections() -> None:
     end = Zone(
         name="end",
         x=0,
