@@ -18,8 +18,8 @@ ZONE_ROLES = {
 
 
 @dataclass
-class _ParseState:
-    """Hold values and duplicate-tracking data accumulated across lines."""
+class _MapBuilder:
+    """Accumulate parsed values and build a validated map."""
 
     nb_drones: int | None = None
     zones: dict[str, Zone] = field(default_factory=dict)
@@ -29,8 +29,62 @@ class _ParseState:
     seen_fields: set[str] = field(default_factory=set)
     seen_connections: set[frozenset[str]] = field(default_factory=set)
 
-    def to_parsed_data(self) -> dict[str, object]:
-        """Build the mapping consumed by Pydantic graph validation."""
+    def set_nb_drones(self, value: int) -> None:
+        """Set the drone count after checking for a duplicate field."""
+
+        self._mark_single_field("nb_drones")
+        self.nb_drones = value
+
+    def add_zone(self, key: str, zone: Zone) -> None:
+        """Add a zone and update the start or end reference if needed."""
+
+        self._mark_single_field(key)
+
+        if zone.name in self.zones:
+            raise ValueError(f"Duplicate zone name: '{zone.name}'")
+
+        self.zones[zone.name] = zone
+
+        if key == "start_hub":
+            self.start = zone.name
+        elif key == "end_hub":
+            self.end = zone.name
+
+    def add_connection(self, connection: Connection) -> None:
+        """Add a connection after checking map-wide constraints."""
+
+        endpoints = frozenset((connection.zone_a, connection.zone_b))
+        unknown = endpoints - self.zones.keys()
+
+        if unknown:
+            names = ", ".join(sorted(unknown))
+            raise ValueError(
+                "Connection references zones that have not "
+                f"been defined: {names}"
+            )
+
+        if endpoints in self.seen_connections:
+            raise ValueError(
+                "Duplicate connection: "
+                f"{connection.zone_a}-{connection.zone_b}"
+            )
+
+        self.seen_connections.add(endpoints)
+        self.connections.append(connection)
+
+    def _mark_single_field(self, key: str) -> None:
+        """Reject a repeated field that may appear only once."""
+
+        if key not in SINGLE_FIELDS:
+            return
+
+        if key in self.seen_fields:
+            raise ValueError(f"Duplicate field: '{key}'")
+
+        self.seen_fields.add(key)
+
+    def build(self) -> Map:
+        """Build and validate a map from the accumulated values."""
 
         parsed_data: dict[str, object] = {
             "zones": self.zones,
@@ -44,7 +98,7 @@ class _ParseState:
         if self.end is not None:
             parsed_data["end"] = self.end
 
-        return parsed_data
+        return Map.model_validate(parsed_data)
 
 
 class ParsingError(Exception):
@@ -87,17 +141,17 @@ class MapParser:
 
         try:
             with self._file.open("rb") as lines:
-                parsed_data = self._parse_lines(lines)
-                return Map.model_validate(parsed_data)
+                builder = self._parse_lines(lines)
+                return builder.build()
         except OSError as error:
             raise ParsingError(f"Unable to read map file: {error}") from error
         except ValidationError as error:
             raise ParsingError(str(error)) from error
 
-    def _parse_lines(self, lines: Iterable[bytes]) -> dict[str, object]:
-        """Parse all lines while preserving cross-line parsing state."""
+    def _parse_lines(self, lines: Iterable[bytes]) -> _MapBuilder:
+        """Parse all lines into a new map builder."""
 
-        state = _ParseState()
+        builder = _MapBuilder()
         last_line_number = 0
 
         for line_number, raw_content in enumerate(lines, start=1):
@@ -122,11 +176,11 @@ class MapParser:
                 key, value = content.split(":", 1)
                 key = key.strip()
                 value = value.strip()
-                self._apply_field(state, key, value)
+                self._apply_field(builder, key, value)
             except ValueError as error:
                 raise LineParsingError(str(error), line_number) from error
 
-        if state.nb_drones is None:
+        if builder.nb_drones is None:
             raise LineParsingError(
                 "The first non-comment line must define 'nb_drones'.",
                 last_line_number + 1 if last_line_number else 1,
@@ -135,7 +189,7 @@ class MapParser:
         missing = [
             key
             for key in ("start_hub", "end_hub")
-            if key not in state.seen_fields
+            if key not in builder.seen_fields
         ]
         if missing:
             label = "field" if len(missing) == 1 else "fields"
@@ -145,91 +199,39 @@ class MapParser:
                 last_line_number + 1,
             )
 
-        return state.to_parsed_data()
+        return builder
 
     def _apply_field(
         self,
-        state: _ParseState,
+        builder: _MapBuilder,
         key: str,
         value: str,
     ) -> None:
-        """Parse one field and apply it to the accumulated map state."""
+        """Parse one field and apply it to the map builder."""
 
-        self._validate_first_field(state, key)
+        self._validate_first_field(builder, key)
 
         match key:
             case "nb_drones":
-                self._mark_single_field(state, key)
-                state.nb_drones = self._parse_positive_int(value, key)
+                builder.set_nb_drones(self._parse_positive_int(value, key))
             case "start_hub" | "end_hub" | "hub":
-                self._mark_single_field(state, key)
-                self._add_zone(state, key, value)
+                builder.add_zone(key, self._parse_zone(key, value))
             case "connection":
-                self._add_connection(state, value)
+                builder.add_connection(self._parse_connection(value))
             case _:
                 raise ValueError(f"Unknown key '{key}'.")
 
-    def _validate_first_field(self, state: _ParseState, key: str) -> None:
+    def _validate_first_field(
+        self,
+        builder: _MapBuilder,
+        key: str,
+    ) -> None:
         """Ensure that the first non-comment line defines the drone count."""
 
-        if state.nb_drones is None and key != "nb_drones":
+        if builder.nb_drones is None and key != "nb_drones":
             raise ValueError(
                 "The first non-comment line must define 'nb_drones'."
             )
-
-    def _mark_single_field(self, state: _ParseState, key: str) -> None:
-        """Reject a repeated field that may appear only once."""
-
-        if key not in SINGLE_FIELDS:
-            return
-
-        if key in state.seen_fields:
-            raise ValueError(f"Duplicate field: '{key}'")
-
-        state.seen_fields.add(key)
-
-    def _add_zone(
-        self,
-        state: _ParseState,
-        key: str,
-        value: str,
-    ) -> None:
-        """Parse a zone and add it to the accumulated map state."""
-
-        zone = self._parse_zone(key, value)
-
-        if zone.name in state.zones:
-            raise ValueError(f"Duplicate zone name: '{zone.name}'")
-
-        state.zones[zone.name] = zone
-
-        if key == "start_hub":
-            state.start = zone.name
-        elif key == "end_hub":
-            state.end = zone.name
-
-    def _add_connection(self, state: _ParseState, value: str) -> None:
-        """Parse and add a connection after checking global constraints."""
-
-        connection = self._parse_connection(value)
-        endpoints = frozenset((connection.zone_a, connection.zone_b))
-        unknown = endpoints - state.zones.keys()
-
-        if unknown:
-            names = ", ".join(sorted(unknown))
-            raise ValueError(
-                "Connection references zones that have not "
-                f"been defined: {names}"
-            )
-
-        if endpoints in state.seen_connections:
-            raise ValueError(
-                "Duplicate connection: "
-                f"{connection.zone_a}-{connection.zone_b}"
-            )
-
-        state.seen_connections.add(endpoints)
-        state.connections.append(connection)
 
     def _parse_positive_int(self, value: str, field: str) -> int:
         """Parse a field value as an integer greater than zero."""
