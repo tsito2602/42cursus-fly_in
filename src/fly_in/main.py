@@ -12,7 +12,7 @@ def main() -> None:
 
     try:
         map = map_parser.load()
-        print(map)
+        print(map.model_dump_json(indent=2))
     except (ParsingError, ValidationError) as error:
         print(error)
 
