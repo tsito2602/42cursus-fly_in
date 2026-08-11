@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from typing import TypeAlias
 from itertools import pairwise
 
-from fly_in.models.connection import Connection
-from fly_in.models.zone import Zone
+from fly_in.models import Connection, Zone
 
 
 @dataclass(frozen=True)
