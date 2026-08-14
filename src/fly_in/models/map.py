@@ -1,9 +1,13 @@
+"""Define and validate a drone network map."""
+
 from pydantic import BaseModel, Field, model_validator
 from .zone import Zone
 from .connection import Connection
 
 
 class Map(BaseModel):
+    """Represent the zones, connections, and fleet of one simulation."""
+
     nb_drones: int = Field(ge=1)
     zones: dict[str, Zone]
     connections: list[Connection]
@@ -12,6 +16,8 @@ class Map(BaseModel):
 
     @model_validator(mode="after")
     def validate_references(self) -> "Map":
+        """Ensure the start and end names refer to defined zones."""
+
         zone_names = set(self.zones)
 
         if self.start not in zone_names:
@@ -24,6 +30,8 @@ class Map(BaseModel):
 
     @model_validator(mode="after")
     def validate_connections(self) -> "Map":
+        """Ensure connections reference known zones without duplicates."""
+
         zone_names = set(self.zones)
         seen: set[frozenset[str]] = set()
 

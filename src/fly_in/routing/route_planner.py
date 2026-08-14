@@ -10,6 +10,8 @@ from .route_schedule import Location, Route, RouteSchedule, Transit
 
 @dataclass(frozen=True)
 class _SearchState:
+    """Identify a zone occupied at a specific simulation turn."""
+
     turn: int
     zone_name: str
 
@@ -18,7 +20,11 @@ CameFrom: TypeAlias = dict[_SearchState, _SearchState | None]
 
 
 class RoutePlanner:
+    """Plan conflict-free routes for every drone on a map."""
+
     def __init__(self, map: Map):
+        """Create a planner for the given map."""
+
         self._map = map
         self._schedule = RouteSchedule()
         self._min_turns_to_goal: dict[str, int] = (
@@ -26,6 +32,8 @@ class RoutePlanner:
         )
 
     def plan_routes(self) -> RouteSchedule | None:
+        """Plan and reserve one route for each drone."""
+
         for drone_id in range(1, self._map.nb_drones + 1):
             route = self._find_route()
 
@@ -37,6 +45,8 @@ class RoutePlanner:
         return self._schedule
 
     def _find_route(self) -> Route | None:
+        """Find the earliest valid route for the next drone."""
+
         start = _SearchState(turn=0, zone_name=self._map.start)
 
         if start.zone_name not in self._min_turns_to_goal:
@@ -68,6 +78,8 @@ class RoutePlanner:
         return None
 
     def _candidate_priority(self, state: _SearchState) -> tuple[int, bool]:
+        """Rank a state by estimated arrival time and zone priority."""
+
         estimated_turns = state.turn + self._heuristic(state)
         is_not_priority = (
             self._map.zones[state.zone_name].zone_type is not ZoneType.PRIORITY
@@ -78,6 +90,8 @@ class RoutePlanner:
     def _construct_route(
         self, came_from: CameFrom, goal: _SearchState
     ) -> Route:
+        """Rebuild a route from linked search states."""
+
         states: list[_SearchState] = []
         current: _SearchState | None = goal
 
@@ -106,6 +120,8 @@ class RoutePlanner:
         return tuple(locations)
 
     def _next_states(self, current: _SearchState) -> list[_SearchState]:
+        """Return valid moves and waiting states after the current state."""
+
         next_states: list[_SearchState] = []
 
         for connection in self._map.connections:
@@ -145,9 +161,13 @@ class RoutePlanner:
         return next_states
 
     def _heuristic(self, state: _SearchState) -> int:
+        """Estimate the remaining turns from a state to the goal."""
+
         return self._min_turns_to_goal[state.zone_name]
 
     def _calc_min_turns_to_goal(self) -> dict[str, int]:
+        """Calculate goal-distance estimates for all reachable zones."""
+
         min_turns = {self._map.end: 0}
         candidates = [(0, self._map.end)]
 
@@ -185,6 +205,8 @@ class RoutePlanner:
         return min_turns
 
     def _movement_turns(self, destination_name: str) -> int:
+        """Return the turn cost of entering a destination zone."""
+
         destination = self._map.zones[destination_name]
         if destination.zone_type is ZoneType.RESTRICTED:
             return 2

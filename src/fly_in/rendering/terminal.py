@@ -1,3 +1,5 @@
+"""Render a route schedule as colored terminal output."""
+
 from fly_in.models import Map
 from fly_in.routing import RouteSchedule
 from fly_in.routing import Transit
@@ -18,6 +20,8 @@ ANSI_RESET = "\033[0m"
 
 
 def render_schedule(map: Map, schedule: RouteSchedule) -> None:
+    """Print all drone movements grouped by simulation turn."""
+
     lines: list[str] = []
 
     for turn in range(1, schedule.last_turn + 1):
@@ -54,6 +58,8 @@ def render_schedule(map: Map, schedule: RouteSchedule) -> None:
 
 
 def _colorize(text: str, color: str | None) -> str:
+    """Apply a supported ANSI color to text when one is specified."""
+
     if color is None:
         return text
 

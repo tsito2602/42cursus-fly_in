@@ -1,3 +1,5 @@
+"""Provide the Fly-in command-line entry point."""
+
 from argparse import ArgumentParser
 
 from fly_in.parsing import MapParser, ParsingError
@@ -18,6 +20,8 @@ def get_map_file() -> str:
 
 
 def main() -> None:
+    """Load a map, plan drone routes, and render the resulting schedule."""
+
     file = get_map_file()
     map_parser = MapParser(file)
 
