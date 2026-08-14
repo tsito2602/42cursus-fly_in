@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
 
 from fly_in.parsing import MapParser, ParsingError
+from fly_in.rendering import render_schedule
+from fly_in.routing import RoutePlanner
 
 
 def get_map_file() -> str:
@@ -21,7 +23,13 @@ def main() -> None:
 
     try:
         map = map_parser.load()
-        print(map.model_dump_json(indent=2))
+        route_schedule = RoutePlanner(map).plan_routes()
+
+        if route_schedule is None:
+            print("No valid route from start to end.")
+            return
+
+        render_schedule(route_schedule, map.nb_drones)
     except ParsingError as error:
         print(error)
 

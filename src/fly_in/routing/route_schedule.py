@@ -23,6 +23,12 @@ class RouteSchedule:
     _zone_usage: dict[ZoneSlot, int] = field(default_factory=dict)
     _connection_usage: dict[ConnectionSlot, int] = field(default_factory=dict)
 
+    @property
+    def last_turn(self) -> int:
+        return max(
+            (len(route) - 1 for route in self._routes.values()), default=0
+        )
+
     def add_route(self, drone_id: int, route: Route) -> None:
         if drone_id in self._routes:
             raise ValueError(f"Drone {drone_id} already has a route.")
