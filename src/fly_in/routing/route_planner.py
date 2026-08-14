@@ -48,7 +48,7 @@ class RoutePlanner:
         while candidates:
             current = min(
                 candidates,
-                key=lambda state: (state.turn + self._heuristic(state)),
+                key=self._candidate_priority,
             )
             candidates.remove(current)
 
@@ -66,6 +66,14 @@ class RoutePlanner:
                 candidates.append(next_state)
 
         return None
+
+    def _candidate_priority(self, state: _SearchState) -> tuple[int, bool]:
+        estimated_turns = state.turn + self._heuristic(state)
+        is_not_priority = (
+            self._map.zones[state.zone_name].zone_type is not ZoneType.PRIORITY
+        )
+
+        return estimated_turns, is_not_priority
 
     def _construct_route(
         self, came_from: CameFrom, goal: _SearchState
