@@ -29,7 +29,7 @@ def main() -> None:
             print("No valid route from start to end.")
             return
 
-        render_schedule(route_schedule, map.nb_drones)
+        render_schedule(map, route_schedule)
     except ParsingError as error:
         print(error)
 
