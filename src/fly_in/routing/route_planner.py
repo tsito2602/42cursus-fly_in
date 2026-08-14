@@ -18,14 +18,25 @@ CameFrom: TypeAlias = dict[_SearchState, _SearchState | None]
 
 
 class RoutePlanner:
-    def __init__(self, map: Map, schedule: RouteSchedule):
+    def __init__(self, map: Map):
         self._map = map
-        self._schedule = schedule
+        self._schedule = RouteSchedule()
         self._min_turns_to_goal: dict[str, int] = (
             self._calc_min_turns_to_goal()
         )
 
-    def find_route(self) -> Route | None:
+    def plan_routes(self) -> RouteSchedule | None:
+        for drone_id in range(1, self._map.nb_drones + 1):
+            route = self._find_route()
+
+            if route is None:
+                return None
+
+            self._schedule.add_route(drone_id, route)
+
+        return self._schedule
+
+    def _find_route(self) -> Route | None:
         start = _SearchState(turn=0, zone_name=self._map.start)
 
         if start.zone_name not in self._min_turns_to_goal:
