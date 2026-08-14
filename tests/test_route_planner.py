@@ -118,6 +118,25 @@ def test_chooses_route_with_fewer_turns() -> None:
     assert schedule.get_route(1) == ("start", normal.name, "goal")
 
 
+def test_prefers_priority_zone_when_turns_are_equal() -> None:
+    normal = make_hub("normal")
+    priority = make_hub("priority", ZoneType.PRIORITY)
+    map = make_map(
+        [normal, priority],
+        [
+            Connection(zone_a="start", zone_b=normal.name),
+            Connection(zone_a=normal.name, zone_b="goal"),
+            Connection(zone_a="start", zone_b=priority.name),
+            Connection(zone_a=priority.name, zone_b="goal"),
+        ],
+    )
+
+    schedule = RoutePlanner(map).plan_routes()
+
+    assert schedule is not None
+    assert schedule.get_route(1) == ("start", priority.name, "goal")
+
+
 def test_avoids_blocked_zone() -> None:
     blocked = make_hub("blocked", ZoneType.BLOCKED)
     open_hub = make_hub("open")
