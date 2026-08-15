@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick Start</a> •
+  <a href="#instructions">Instructions</a> •
   <a href="#algorithm-and-implementation">Algorithm</a> •
   <a href="#visual-representation">Visualizer</a> •
   <a href="#performance">Performance</a> •
@@ -26,7 +26,7 @@
 
 ![Fly-in graphical visualizer showing the medium circular loop map](assets/gui-overview.png)
 
-## Overview
+## Description
 
 Fly-in is a multi-drone routing simulator. It parses a graph of zones and
 bidirectional connections, then schedules every drone from the start zone to
@@ -62,7 +62,8 @@ simulation turn.
 
 ## Table of contents
 
-- [Quick Start](#quick-start)
+- [Description](#description)
+- [Instructions](#instructions)
 - [Map Format](#map-format)
 - [Example](#example)
 - [Algorithm and Implementation](#algorithm-and-implementation)
@@ -71,10 +72,10 @@ simulation turn.
 - [Performance](#performance)
 - [Testing and Quality](#testing-and-quality)
 - [Project Structure](#project-structure)
-- [Resources and AI Usage](#resources-and-ai-usage)
+- [Resources](#resources)
 - [日本語版](#日本語版)
 
-## Quick Start
+## Instructions
 
 ### Requirements
 
@@ -442,9 +443,9 @@ All source files pass <code>flake8</code> and
 └── pyproject.toml
 ~~~
 
-## Resources and AI Usage
+## Resources
 
-### Resources
+### References
 
 - [Python argparse documentation](https://docs.python.org/3/library/argparse.html)
 - [Python heapq documentation](https://docs.python.org/3/library/heapq.html)
@@ -480,7 +481,7 @@ and maintaining all submitted code.
 <details>
 <summary><strong>日本語訳を開く</strong></summary>
 
-## 概要
+## Description
 
 Fly-inは、複数のドローンをstartゾーンからgoalまで移動させる経路計画
 シミュレーターである。ゾーンと接続の収容数、blockedゾーン、
@@ -498,7 +499,7 @@ restrictedゾーンへの2ターン移動を守りながら、全ドローンの
 | restricted | 2ターン | 1ターン接続上を移動してから到着 |
 | blocked | — | 進入不可 |
 
-## 実行方法
+## Instructions
 
 依存パッケージをインストールする。
 
@@ -524,7 +525,7 @@ open simulation.html
 生成されるHTMLにはCSS、JavaScript、マップ、シミュレーションデータが
 すべて含まれるため、Webサーバーを使わず直接開ける。
 
-## マップ形式
+## Map Format
 
 ~~~text
 nb_drones: <正の整数>
@@ -541,7 +542,7 @@ connection: <ゾーン1>-<ゾーン2> [メタデータ]
 <code>max_drones</code>はゾーンの収容数、
 <code>max_link_capacity</code>は接続の収容数を表す。
 
-## アルゴリズム
+## Algorithm and Implementation
 
 ### Space-Time A*形式の探索
 
@@ -577,7 +578,7 @@ Turn 2: restricted
 <code>Transit</code>により、接続上を移動しているターンも予約と表示の
 対象になる。
 
-## 表示機能
+## Visual Representation
 
 ターミナルでは、1行に1ターン分の移動を表示する。待機中と到着済みの
 ドローンは省略し、restrictedへの移動中は接続名を表示する。
@@ -595,7 +596,7 @@ HTML GUIは次の機能を持つ。
 経路探索はPython側だけで行う。JavaScriptは
 <code>render_html()</code>が埋め込んだ結果を表示するだけである。
 
-## 性能
+## Performance
 
 | マップ | 結果 | 課題目標 |
 | --- | ---: | ---: |
@@ -612,7 +613,7 @@ HTML GUIは次の機能を持つ。
 
 すべての提供マップで目標を満たし、challengerの参考記録を2ターン上回っている。
 
-## テスト
+## Testing and Quality
 
 49件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
 HTML生成、CLI統合を確認している。
@@ -623,7 +624,9 @@ make lint
 make lint-strict
 ~~~
 
-## 参考資料とAI利用
+## Resources
+
+### AI usage
 
 AIは、課題要件の確認、経路探索とスケジューリング方針の検討、実装レビュー、
 境界値の提案、テスト、Makefile、docstring、READMEの生成に使用した。
