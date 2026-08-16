@@ -1,21 +1,39 @@
 """Render a route schedule as colored terminal output."""
 
+from itertools import cycle
+
 from fly_in.models import Map
 from fly_in.routing import RouteSchedule
 from fly_in.routing import Transit
 
-ANSI_COLORS = {
-    "black": "\033[30m",
-    "red": "\033[31m",
-    "green": "\033[32m",
-    "yellow": "\033[33m",
-    "blue": "\033[34m",
-    "magenta": "\033[35m",
-    "cyan": "\033[36m",
-    "white": "\033[37m",
-    "gray": "\033[90m",
+RGB_COLORS = {
+    "black": (0, 0, 0),
+    "blue": (0, 0, 255),
+    "brown": (165, 42, 42),
+    "crimson": (220, 20, 60),
+    "cyan": (0, 255, 255),
+    "darkred": (139, 0, 0),
+    "gold": (255, 215, 0),
+    "green": (0, 128, 0),
+    "lime": (0, 255, 0),
+    "magenta": (255, 0, 255),
+    "maroon": (128, 0, 0),
+    "orange": (255, 165, 0),
+    "purple": (128, 0, 128),
+    "red": (255, 0, 0),
+    "violet": (238, 130, 238),
+    "yellow": (255, 255, 0),
 }
 
+RAINBOW_RGB = (
+    (255, 0, 0),
+    (255, 165, 0),
+    (255, 255, 0),
+    (0, 128, 0),
+    (0, 0, 255),
+    (75, 0, 130),
+    (238, 130, 238),
+)
 ANSI_RESET = "\033[0m"
 
 
@@ -58,14 +76,28 @@ def render_schedule(map: Map, schedule: RouteSchedule) -> None:
 
 
 def _colorize(text: str, color: str | None) -> str:
-    """Apply a supported ANSI color to text when one is specified."""
+    """Apply a supported RGB terminal color to the given text."""
 
     if color is None:
         return text
 
-    color_code = ANSI_COLORS.get(color)
+    if color == "rainbow":
+        colored_characters = (
+            f"{_rgb_escape(rgb)}{character}"
+            for character, rgb in zip(text, cycle(RAINBOW_RGB))
+        )
+        return "".join(colored_characters) + ANSI_RESET
 
-    if color_code is None:
+    rgb = RGB_COLORS.get(color)
+
+    if rgb is None:
         return text
 
-    return f"{color_code}{text}{ANSI_RESET}"
+    return f"{_rgb_escape(rgb)}{text}{ANSI_RESET}"
+
+
+def _rgb_escape(rgb: tuple[int, int, int]) -> str:
+    """Return an ANSI true-color escape sequence for an RGB value."""
+
+    red, green, blue = rgb
+    return f"\033[38;2;{red};{green};{blue}m"

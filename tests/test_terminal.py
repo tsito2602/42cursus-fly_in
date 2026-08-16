@@ -91,8 +91,9 @@ def test_renders_transit_as_connection(
     render_schedule(map, schedule)
 
     assert capsys.readouterr().out == (
-        "D1-\033[32mstart\033[0m-\033[31mrestricted\033[0m\n"
-        "D1-\033[31mrestricted\033[0m\n"
+        "D1-\033[38;2;0;128;0mstart\033[0m-"
+        "\033[38;2;255;0;0mrestricted\033[0m\n"
+        "D1-\033[38;2;255;0;0mrestricted\033[0m\n"
         "D1-goal\n"
     )
 
@@ -107,15 +108,69 @@ def test_renders_zone_with_ansi_color(
     render_schedule(map, schedule)
 
     assert capsys.readouterr().out == (
-        "D1-\033[34mhub\033[0m\n"
+        "D1-\033[38;2;0;0;255mhub\033[0m\n"
         "D1-goal\n"
     )
 
 
-def test_renders_unsupported_color_without_ansi_code(
+@pytest.mark.parametrize(
+    ("color", "rgb"),
+    [
+        ("black", "0;0;0"),
+        ("blue", "0;0;255"),
+        ("brown", "165;42;42"),
+        ("crimson", "220;20;60"),
+        ("cyan", "0;255;255"),
+        ("darkred", "139;0;0"),
+        ("gold", "255;215;0"),
+        ("green", "0;128;0"),
+        ("lime", "0;255;0"),
+        ("magenta", "255;0;255"),
+        ("maroon", "128;0;0"),
+        ("orange", "255;165;0"),
+        ("purple", "128;0;128"),
+        ("red", "255;0;0"),
+        ("violet", "238;130;238"),
+        ("yellow", "255;255;0"),
+    ],
+)
+def test_renders_map_color_as_rgb(
+    color: str,
+    rgb: str,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    map = make_map(nb_drones=1, colors={"hub": "orange"})
+    map = make_map(nb_drones=1, colors={"hub": color})
+    schedule = RouteSchedule()
+    schedule.add_route(1, ("start", "hub", "goal"))
+
+    render_schedule(map, schedule)
+
+    assert capsys.readouterr().out == (
+        f"D1-\033[38;2;{rgb}mhub\033[0m\nD1-goal\n"
+    )
+
+
+def test_renders_rainbow_color(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    map = make_map(nb_drones=1, colors={"hub": "rainbow"})
+    schedule = RouteSchedule()
+    schedule.add_route(1, ("start", "hub", "goal"))
+
+    render_schedule(map, schedule)
+
+    assert capsys.readouterr().out == (
+        "D1-\033[38;2;255;0;0mh"
+        "\033[38;2;255;165;0mu"
+        "\033[38;2;255;255;0mb\033[0m\n"
+        "D1-goal\n"
+    )
+
+
+def test_renders_unsupported_color_without_rgb_code(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    map = make_map(nb_drones=1, colors={"hub": "unknown"})
     schedule = RouteSchedule()
     schedule.add_route(1, ("start", "hub", "goal"))
 
