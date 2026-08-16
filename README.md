@@ -13,7 +13,7 @@
   <img alt="uv" src="https://img.shields.io/badge/package_manager-uv-DE5FE9?logo=uv&logoColor=white">
   <img alt="mypy strict" src="https://img.shields.io/badge/mypy-strict-2A6DB2">
   <img alt="flake8" src="https://img.shields.io/badge/flake8-passing-4C9A2A">
-  <img alt="pytest" src="https://img.shields.io/badge/pytest-49_passed-0A9EDC?logo=pytest&logoColor=white">
+  <img alt="pytest" src="https://img.shields.io/badge/pytest-47_passed-0A9EDC?logo=pytest&logoColor=white">
 </p>
 
 <p align="center">
@@ -23,8 +23,6 @@
   <a href="#performance">Performance</a> •
   <a href="#日本語版">日本語版</a>
 </p>
-
-![Fly-in graphical visualizer showing the medium circular loop map](assets/gui-overview.png)
 
 ## Description
 
@@ -56,7 +54,6 @@ simulation turn.
 - Zone and connection capacity reservations
 - Explicit in-flight <code>Transit</code> states for restricted movement
 - ANSI-colored terminal timeline
-- Standalone interactive HTML/SVG visualizer
 - 43-turn solution for the 45-turn challenger reference
 - Fully typed Python with <code>mypy --strict</code>
 
@@ -105,19 +102,6 @@ The equivalent direct command is:
 ~~~sh
 uv run fly-in maps/medium/03_priority_puzzle.txt
 ~~~
-
-### Generate the graphical visualizer
-
-~~~sh
-uv run fly-in maps/medium/02_circular_loop.txt \
-  --html simulation.html
-
-open simulation.html
-~~~
-
-The generated file is self-contained. It embeds the HTML, CSS, JavaScript, map,
-and complete simulation, so it can be opened without a server or internet
-connection.
 
 ### Development commands
 
@@ -252,7 +236,8 @@ Turn 2: restricted
 ~~~
 
 The <code>Transit</code> value reserves the connection during flight and lets
-both renderers show that the drone has left its origin but has not yet arrived.
+the terminal renderer show that the drone has left its origin but has not yet
+arrived.
 
 ### Planning flow
 
@@ -271,7 +256,7 @@ flowchart TD
     F -- Yes --> J[Reconstruct route and Transit states]
     J --> K[Reserve zones and connections]
     K --> C
-    C -- No --> L[Render terminal and optional HTML output]
+    C -- No --> L[Render terminal output]
 ~~~
 
 ### Design trade-off
@@ -302,38 +287,6 @@ D1-merge_point D2-fast_path D3-slow_path2
 During restricted movement, the origin and destination names use their own
 zone colors. Waiting and delivered drones are omitted from the line.
 
-### Interactive HTML/SVG visualizer
-
-<table>
-  <tr>
-    <td width="50%">
-      <img src="assets/gui-overview.png" alt="Complete medium circular loop map">
-      <br>
-      <em>Fit view: the complete circular loop map</em>
-    </td>
-    <td width="50%">
-      <img src="assets/gui-turn-detail.png" alt="Drones at turn seven">
-      <br>
-      <em>Turn 7: simultaneous drone positions and transit</em>
-    </td>
-  </tr>
-</table>
-
-The optional visualizer:
-
-- draws zones and connections from map coordinates using SVG;
-- uses map colors and distinct outlines for zone types;
-- places active drones on zones;
-- places in-flight drones halfway along restricted connections;
-- supports Previous, Next, Play, Pause, and a turn slider;
-- displays delivered-drone and turn counters;
-- initially fits the complete map to the available width;
-- zooms the complete SVG without changing its internal layout;
-- enables scrolling after zooming into a large map.
-
-Python performs all route planning. JavaScript only displays the simulation
-data embedded by <code>render_html()</code>.
-
 ## Architecture
 
 ~~~mermaid
@@ -359,7 +312,6 @@ flowchart LR
 
     subgraph Rendering
         Terminal[terminal.py]
-        HTML[html.py]
     end
 
     CLI --> Parser
@@ -371,15 +323,12 @@ flowchart LR
     Planner --> Schedule
     Planner --> Transit
     Schedule --> Terminal
-    Schedule --> HTML
     MapModel --> Terminal
-    MapModel --> HTML
     Terminal --> Output[Required terminal timeline]
-    HTML --> File[Standalone simulation.html]
 ~~~
 
 The parser, domain models, routing, reservations, and presentation remain
-separate. Adding the HTML view did not change route-planning behavior.
+separate.
 
 ## Performance
 
@@ -415,8 +364,7 @@ The test suite currently contains 49 tests covering:
 - blocked, restricted, and priority routing;
 - zone and connection reservations;
 - strategic waiting and unavailable paths;
-- terminal colors and Transit output;
-- standalone HTML generation and CLI integration.
+- terminal colors and Transit output.
 
 All source files pass <code>flake8</code> and
 <code>mypy --strict</code>.
@@ -425,15 +373,11 @@ All source files pass <code>flake8</code> and
 
 ~~~text
 .
-├── assets/
-│   ├── gui-overview.png
-│   └── gui-turn-detail.png
 ├── src/fly_in/
 │   ├── main.py
 │   ├── models/
 │   ├── parsing/
 │   ├── rendering/
-│   │   ├── html.py
 │   │   └── terminal.py
 │   └── routing/
 │       ├── route_planner.py
@@ -454,7 +398,6 @@ All source files pass <code>flake8</code> and
 - [Pydantic documentation](https://docs.pydantic.dev/)
 - [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
-- [SVG tutorial — MDN](https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial)
 
 ### AI usage
 
@@ -462,15 +405,9 @@ AI was used to clarify assignment requirements, discuss route-planning and
 scheduling trade-offs, review implementation details, propose edge cases, and
 generate tests, Makefile content, docstrings, and documentation.
 
-AI generated the HTML, CSS, and JavaScript graphical visualizer together with
-its Python serialization and CLI integration, based on behavior and design
-requirements specified by the author. The author ran the application, inspected
-its output, identified the layout failure on the challenger map, and iterated
-on fit-to-width and zoom behavior with AI assistance.
-
 The generated work was checked against the subject with automated tests,
-<code>flake8</code>, <code>mypy --strict</code>, provided maps, and real-browser
-testing. AI use is disclosed explicitly so the implementation can be reviewed
+<code>flake8</code>, <code>mypy --strict</code>, and provided maps. AI use is
+disclosed explicitly so the implementation can be reviewed
 transparently; the author remains responsible for understanding, explaining,
 and maintaining all submitted code.
 
@@ -512,18 +449,6 @@ make install
 ~~~sh
 uv run fly-in maps/medium/03_priority_puzzle.txt
 ~~~
-
-HTML GUIも生成する。
-
-~~~sh
-uv run fly-in maps/medium/02_circular_loop.txt \
-  --html simulation.html
-
-open simulation.html
-~~~
-
-生成されるHTMLにはCSS、JavaScript、マップ、シミュレーションデータが
-すべて含まれるため、Webサーバーを使わず直接開ける。
 
 ## Map Format
 
@@ -583,19 +508,6 @@ Turn 2: restricted
 ターミナルでは、1行に1ターン分の移動を表示する。待機中と到着済みの
 ドローンは省略し、restrictedへの移動中は接続名を表示する。
 
-HTML GUIは次の機能を持つ。
-
-- マップ座標を使ったSVG描画
-- ゾーン色と種類の表示
-- ゾーン上または接続上のドローン表示
-- Previous、Next、Play、Pause、ターンスライダー
-- ターン数と到着済みドローン数
-- 大規模マップの初期全幅表示
-- SVG全体の拡大縮小とスクロール
-
-経路探索はPython側だけで行う。JavaScriptは
-<code>render_html()</code>が埋め込んだ結果を表示するだけである。
-
 ## Performance
 
 | マップ | 結果 | 課題目標 |
@@ -615,8 +527,8 @@ HTML GUIは次の機能を持つ。
 
 ## Testing and Quality
 
-49件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
-HTML生成、CLI統合を確認している。
+47件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示を
+確認している。
 
 ~~~sh
 make test
@@ -631,13 +543,8 @@ make lint-strict
 AIは、課題要件の確認、経路探索とスケジューリング方針の検討、実装レビュー、
 境界値の提案、テスト、Makefile、docstring、READMEの生成に使用した。
 
-HTML、CSS、JavaScriptによるGUIと、Python側のシリアライズおよびCLI統合は、
-作者が指定した動作とデザイン要件を基にAIが生成した。作者は実際に
-アプリケーションを実行し、challengerマップでレイアウトが崩れる問題を
-発見して、全幅表示とズーム動作をAIと反復して改善した。
-
 生成物は課題文、自動テスト、<code>flake8</code>、
-<code>mypy --strict</code>、提供マップ、実ブラウザで確認した。AI利用を
+<code>mypy --strict</code>、提供マップで確認した。AI利用を
 明示し、提出するすべてのコードについて作者が理解、説明、保守する責任を
 持つ。
 
