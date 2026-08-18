@@ -53,7 +53,7 @@ simulation turn.
 - Strategic waiting when movement is temporarily unavailable
 - Zone and connection capacity reservations
 - Explicit in-flight <code>Transit</code> states for restricted movement
-- ANSI-colored terminal timeline
+- Flet visualizer with playback, speed control, and a turn slider
 - 43-turn solution for the 45-turn challenger reference
 - Fully typed Python with <code>mypy --strict</code>
 
@@ -102,6 +102,16 @@ The equivalent direct command is:
 ~~~sh
 uv run fly-in maps/medium/03_priority_puzzle.txt
 ~~~
+
+Open the graphical visualizer alongside the terminal output:
+
+~~~sh
+uv run fly-in maps/medium/03_priority_puzzle.txt --gui
+~~~
+
+| Option | Effect |
+| --- | --- |
+| <code>-g</code>, <code>--gui</code> | Open the network and the drone positions in a window |
 
 ### Development commands
 
@@ -273,10 +283,10 @@ wall-clock time.
 
 ## Visual Representation
 
-### Colored terminal timeline
+### Terminal timeline
 
-The terminal renderer preserves the required movement format and colors zone
-names when the map specifies a supported ANSI color:
+The terminal renderer prints one line per turn, in the format required by the
+subject:
 
 ~~~text
 D1-fast_junction D3-start-slow_path1
@@ -284,8 +294,41 @@ D1-fast_path D2-fast_junction D3-slow_path1
 D1-merge_point D2-fast_path D3-slow_path2
 ~~~
 
-During restricted movement, the origin and destination names use their own
-zone colors. Waiting and delivered drones are omitted from the line.
+Waiting and delivered drones are omitted from the line. During restricted
+movement, both the origin and the destination appear, separated by a dash.
+
+### Graphical visualizer
+
+The <code>--gui</code> option opens a Flet window rendering the same schedule.
+Zones keep the position given by the map file, rescaled to fit the canvas
+while preserving the aspect ratio.
+
+| Channel | Meaning |
+| --- | --- |
+| Fill color | <code>color=</code> metadata, or the zone type when absent |
+| Outline color | Zone type: normal, priority, restricted, blocked |
+| Dashed outline | Restricted or blocked zone |
+| Circle size | Start and end hubs are drawn larger |
+| <code>START</code> / <code>GOAL</code> badge | Start and end hubs |
+| <code>×N</code> after a name | <code>max_drones</code>, when it is limited |
+| Line width | <code>max_link_capacity</code> of a connection |
+| White dot | One drone, animated between turns |
+| Numbered dot | Eight or more drones stacked on one location |
+
+Up to seven drones sharing a location are spread over a ring around its
+center. From eight, they stack on the center behind a single dot carrying
+their count, so a crowded start hub never spills over its neighbours. A drone
+in transit sits at the midpoint of its connection.
+
+| Control | Action |
+| --- | --- |
+| <code>→</code> / <code>←</code> | One turn forward or back |
+| <code>Space</code> | Start or pause the playback |
+| <code>Home</code> | Return to the first turn |
+| Speed button | Cycle 1x, 2x, 4x, 0.5x |
+| Slider | Jump to any turn |
+
+The window can be resized freely; the map refits itself to the new size.
 
 ## Architecture
 
@@ -357,14 +400,16 @@ make lint
 make lint-strict
 ~~~
 
-The test suite currently contains 49 tests covering:
+The test suite currently contains 205 tests covering:
 
 - valid maps, comments, metadata, and defaults;
 - malformed lines, duplicate definitions, and invalid references;
 - blocked, restricted, and priority routing;
 - zone and connection reservations;
 - strategic waiting and unavailable paths;
-- terminal colors and Transit output.
+- terminal output and Transit formatting;
+- the per-turn simulation state feeding the visualizer;
+- the coordinate transform, the drone layout, and the window controls.
 
 All source files pass <code>flake8</code> and
 <code>mypy --strict</code>.
@@ -378,7 +423,8 @@ All source files pass <code>flake8</code> and
 │   ├── models/
 │   ├── parsing/
 │   ├── rendering/
-│   │   └── terminal.py
+│   │   ├── terminal.py
+│   │   └── gui/
 │   └── routing/
 │       ├── route_planner.py
 │       └── route_schedule.py
@@ -527,7 +573,8 @@ Turn 2: restricted
 
 ## Testing and Quality
 
-47件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示を
+205件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
+そしてGUIの座標変換・配置・操作を
 確認している。
 
 ~~~sh
