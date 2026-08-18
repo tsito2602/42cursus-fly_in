@@ -1,0 +1,34 @@
+import flet as ft
+
+from .theme import BACKGROUND, DRONE
+from .drone_layout import Point, top_left
+
+
+class CrowdBadge(ft.Container):
+    """Show how many drones are stacked on one point."""
+
+    def __init__(self, radius: float, font: float, point: Point) -> None:
+        self._radius = radius
+        self._count = ft.Text(
+            value="",
+            size=font,
+            color=BACKGROUND,
+            weight=ft.FontWeight.BOLD,
+        )
+
+        super().__init__(
+            width=radius * 2.0,
+            height=radius * 2.0,
+            bgcolor=DRONE,
+            shape=ft.BoxShape.CIRCLE,
+            alignment=ft.Alignment.CENTER,
+            content=self._count,
+            visible=False,
+        )
+        self.left, self.top = top_left(point, radius)
+
+    def set_count(self, count: int) -> None:
+        """Show the count, or hide the badge when the crowd is gone."""
+
+        self.visible = count > 0
+        self._count.value = str(count)
