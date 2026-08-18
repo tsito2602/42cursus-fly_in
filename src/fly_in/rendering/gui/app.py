@@ -1,5 +1,7 @@
 import asyncio
 
+from typing import Awaitable, Callable, cast
+
 import flet as ft
 
 from fly_in.models import Map
@@ -167,7 +169,7 @@ class FlyInApp:
             on_speed=self._next_speed,
         )
 
-    def build(self, page: ft.Page) -> None:
+    async def build(self, page: ft.Page) -> None:
         """Populate the page with the visualizer layout."""
 
         page.title = "Fly-in"
@@ -190,6 +192,15 @@ class FlyInApp:
                 spacing=0,
             )
         )
+        await self._center(page.window)
+
+    @staticmethod
+    async def _center(window: ft.Window) -> None:
+        """Move the window to the middle of the screen."""
+
+        center = cast(Callable[[], Awaitable[None]], window.center)
+
+        await center()
 
     def _status_text(self) -> str:
         """Return the status line for the current turn."""
