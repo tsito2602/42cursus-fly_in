@@ -14,18 +14,19 @@ TURN_SECONDS = 0.6
 SPEEDS = (0.5, 1.0, 2.0, 4.0)
 
 RING_SLOTS = 6
-CROWD_THRESHOLD = RING_SLOTS + 2
+CROWD_THRESHOLD = RING_SLOTS + 1
 
 BACKGROUND = "#12161c"
 LINE = "#4a5568"
 LABEL = "#cbd5e0"
 DRONE = "#ffffff"
+DRONE_OUTLINE = "#555666"
 
 TYPE_COLORS = {
-    ZoneType.NORMAL: "#94a3b8",  # grey
-    ZoneType.PRIORITY: "#38bdf8",  # light blue
-    ZoneType.RESTRICTED: "#f59e0b",  # orange
-    ZoneType.BLOCKED: "#475569",  # dark grey
+    ZoneType.NORMAL: "#94a3b8",
+    ZoneType.PRIORITY: "#38bdf8",
+    ZoneType.RESTRICTED: "#f59e0b",
+    ZoneType.BLOCKED: "#475569",
 }
 
 DASHED_TYPES = (ZoneType.RESTRICTED, ZoneType.BLOCKED)
@@ -113,6 +114,12 @@ def drone_radius(scale: float) -> float:
     """Return the drawing radius of a drone marker."""
 
     return max(3.0, zone_radius(scale) * 0.35)
+
+
+def outline_width(radius: float) -> float:
+    """Return the outline thickness of a white marker."""
+
+    return max(1.0, radius * 0.3)
 
 
 def crowd_radius(scale: float) -> float:

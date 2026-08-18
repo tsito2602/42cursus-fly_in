@@ -20,9 +20,11 @@ from fly_in.rendering.gui.theme import (
     CROWD_THRESHOLD,
     MIN_CANVAS_HEIGHT,
     MIN_CANVAS_WIDTH,
+    DRONE_OUTLINE,
     SPEEDS,
     animation_ms,
     drone_radius,
+    outline_width,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
 from fly_in.rendering.gui.view_transform import ViewTransform
@@ -594,3 +596,28 @@ def test_resizing_keeps_the_badges() -> None:
 
     assert len(badges) == 3
     assert [badge.visible for badge in badges].count(True) == 1
+
+
+def test_every_drone_carries_a_dark_outline() -> None:
+    board, _, _ = make_board()
+
+    for marker in markers_of(board):
+        border = marker.border
+
+        assert border is not None
+        assert border.top is not None
+        assert border.top.color == DRONE_OUTLINE
+        assert border.top.width == outline_width(
+            float(marker.height or 0.0) / 2.0
+        )
+
+
+def test_every_badge_carries_a_dark_outline() -> None:
+    board = make_crowd_board()
+
+    for badge in badges_of(board):
+        border = badge.border
+
+        assert border is not None
+        assert border.top is not None
+        assert border.top.color == DRONE_OUTLINE

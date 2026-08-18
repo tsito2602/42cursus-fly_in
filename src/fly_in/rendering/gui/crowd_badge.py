@@ -1,6 +1,6 @@
 import flet as ft
 
-from .theme import BACKGROUND, DRONE
+from .theme import BACKGROUND, DRONE, DRONE_OUTLINE, outline_width
 from .drone_layout import Point, top_left
 
 
@@ -21,6 +21,7 @@ class CrowdBadge(ft.Container):
             height=radius * 2.0,
             bgcolor=DRONE,
             shape=ft.BoxShape.CIRCLE,
+            border=ft.Border.all(outline_width(radius), DRONE_OUTLINE),
             alignment=ft.Alignment.CENTER,
             content=self._count,
             visible=False,

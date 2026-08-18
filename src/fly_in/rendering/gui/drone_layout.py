@@ -5,7 +5,7 @@ import math
 from fly_in.models import Map
 from fly_in.routing import Transit
 
-from .theme import CROWD_THRESHOLD, RING_SLOTS, drone_radius
+from .theme import CROWD_THRESHOLD, drone_radius
 from .timeline import SimulationTimeline, TurnState
 from .view_transform import ViewTransform
 
@@ -96,25 +96,24 @@ class DroneLayout:
     def _cluster(
         self, center: Point, drone_ids: tuple[int, ...]
     ) -> dict[int, Point]:
-        """Spread drones over one ring, or stack them when crowded."""
+        """Draw a polygon of drones, or stack them when crowded."""
 
         if len(drone_ids) >= CROWD_THRESHOLD:
             return {drone_id: center for drone_id in drone_ids}
 
+        if len(drone_ids) == 1:
+            return {drone_ids[0]: center}
+
         return {
-            drone_id: self._slot(center, index)
+            drone_id: self._corner(center, index, len(drone_ids))
             for index, drone_id in enumerate(drone_ids)
         }
 
-    def _slot(self, center: Point, index: int) -> Point:
-        """Return the point of one seat around a location."""
+    def _corner(self, center: Point, index: int, sides: int) -> Point:
+        """Return one corner of the polygon drawn around a location."""
 
         center_x, center_y = center
-
-        if index == 0:
-            return (center_x, center_y)
-
-        angle = 2.0 * math.pi * (index - 1) / RING_SLOTS
+        angle = 2.0 * math.pi * index / sides - math.pi / 2.0
 
         return (
             center_x + self._spacing * math.cos(angle),

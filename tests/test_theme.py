@@ -4,10 +4,13 @@ import pytest
 
 from fly_in.models import Zone, ZoneRole, ZoneType
 from fly_in.rendering.gui.theme import (
+    DRONE,
+    DRONE_OUTLINE,
     RGB_COLORS,
     SPEEDS,
     TURN_SECONDS,
     animation_ms,
+    outline_width,
     TYPE_COLORS,
     to_hex,
     zone_fill,
@@ -112,3 +115,26 @@ def test_an_unlimited_zone_shows_no_capacity() -> None:
     zone.capacity = None
 
     assert zone_label(zone) == "zone"
+
+
+@pytest.mark.parametrize("radius", [3.0, 6.0, 12.0])
+def test_an_outline_stays_thinner_than_its_marker(radius: float) -> None:
+    assert 0.0 < outline_width(radius) < radius
+
+
+def test_a_bigger_marker_gets_a_thicker_outline() -> None:
+    assert outline_width(20.0) > outline_width(10.0)
+
+
+def test_a_tiny_marker_keeps_a_visible_outline() -> None:
+    assert outline_width(0.5) == 1.0
+
+
+def brightness(color: str) -> int:
+    """Return how bright a ``#rrggbb`` color is, from 0 to 765."""
+
+    return sum(int(color[index:index + 2], 16) for index in (1, 3, 5))
+
+
+def test_the_outline_is_much_darker_than_the_marker() -> None:
+    assert brightness(DRONE_OUTLINE) < brightness(DRONE) / 4

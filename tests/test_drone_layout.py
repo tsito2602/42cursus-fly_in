@@ -96,48 +96,77 @@ def distance(first: Point, second: Point) -> float:
     return math.hypot(first[0] - second[0], first[1] - second[1])
 
 
+def midpoint(first: Point, second: Point) -> Point:
+    return ((first[0] + second[0]) / 2.0, (first[1] + second[1]) / 2.0)
+
+
+def average(points: list[Point]) -> Point:
+    return (
+        sum(x for x, _ in points) / len(points),
+        sum(y for _, y in points) / len(points),
+    )
+
+
 def test_a_lone_drone_sits_exactly_on_the_zone_center() -> None:
     layout = make_crowd(1)
 
     assert layout.points_at(0)[1] == center_of("start", 1)
 
 
-def test_the_first_drone_of_a_crowd_keeps_the_center() -> None:
-    layout = make_crowd(6)
+def test_two_drones_sit_on_opposite_sides_of_the_center() -> None:
+    layout = make_crowd(2)
+    center = center_of("start", 2)
+    first, second = layout.points_at(0)[1], layout.points_at(0)[2]
 
-    assert layout.points_at(0)[1] == center_of("start", 6)
-
-
-def test_the_second_drone_sits_one_spacing_to_the_right() -> None:
-    layout = make_crowd(6)
-    center_x, center_y = center_of("start", 6)
-
-    x, y = layout.points_at(0)[2]
-
-    assert x == pytest.approx(center_x + spacing_of(6))
-    assert y == pytest.approx(center_y)
+    assert midpoint(first, second) == pytest.approx(center)
+    assert distance(first, second) == pytest.approx(spacing_of(2) * 2.0)
 
 
-def test_the_third_drone_sits_below_the_center() -> None:
-    layout = make_crowd(6)
-    _, center_y = center_of("start", 6)
+@pytest.mark.parametrize("nb_drones", range(2, RING_SLOTS + 1))
+def test_a_group_leaves_the_center_empty(nb_drones: int) -> None:
+    layout = make_crowd(nb_drones)
+    center = center_of("start", nb_drones)
 
-    assert layout.points_at(0)[3][1] > center_y
-
-
-def test_the_first_ring_holds_six_drones_around_the_center() -> None:
-    layout = make_crowd(7)
-    center = center_of("start", 7)
-    points = layout.points_at(0)
-
-    for drone_id in range(2, 8):
-        assert distance(points[drone_id], center) == pytest.approx(
-            spacing_of(7)
+    for point in layout.points_at(0).values():
+        assert distance(point, center) == pytest.approx(
+            spacing_of(nb_drones)
         )
 
 
-def test_the_ring_seats_every_drone_below_the_crowd_size() -> None:
-    assert CROWD_THRESHOLD == RING_SLOTS + 2
+@pytest.mark.parametrize("nb_drones", range(2, RING_SLOTS + 1))
+def test_a_group_stays_centered_on_its_zone(nb_drones: int) -> None:
+    layout = make_crowd(nb_drones)
+    points = list(layout.points_at(0).values())
+
+    assert average(points) == pytest.approx(
+        center_of("start", nb_drones)
+    )
+
+
+@pytest.mark.parametrize("nb_drones", range(3, RING_SLOTS + 1))
+def test_a_group_spaces_its_drones_evenly(nb_drones: int) -> None:
+    layout = make_crowd(nb_drones)
+    points = layout.points_at(0)
+    gaps = [
+        distance(points[drone_id], points[drone_id % nb_drones + 1])
+        for drone_id in range(1, nb_drones + 1)
+    ]
+
+    assert gaps == pytest.approx([gaps[0]] * nb_drones)
+
+
+def test_the_first_drone_of_a_group_sits_above_the_center() -> None:
+    layout = make_crowd(4)
+    center_x, center_y = center_of("start", 4)
+
+    x, y = layout.points_at(0)[1]
+
+    assert x == pytest.approx(center_x)
+    assert y == pytest.approx(center_y - spacing_of(4))
+
+
+def test_the_polygon_seats_every_drone_below_the_crowd_size() -> None:
+    assert CROWD_THRESHOLD == RING_SLOTS + 1
 
 
 def test_a_crowd_stacks_every_drone_on_the_center() -> None:
@@ -153,7 +182,7 @@ def test_a_crowd_is_counted() -> None:
     assert layout.crowds_at(0) == {center_of("start", 20): 20}
 
 
-def test_a_full_ring_is_not_a_crowd() -> None:
+def test_a_full_polygon_is_not_a_crowd() -> None:
     layout = make_crowd(CROWD_THRESHOLD - 1)
 
     assert layout.crowds_at(0) == {}
@@ -201,23 +230,7 @@ def test_crowds_at_clamps_a_turn_past_the_end() -> None:
     assert layout.crowds_at(99) == layout.crowds_at(2)
 
 
-def test_a_ring_spreads_its_drones_evenly() -> None:
-    layout = make_crowd(7)
-    center = center_of("start", 7)
-    points = layout.points_at(0)
-
-    angles = sorted(
-        math.atan2(points[drone_id][1] - center[1],
-                   points[drone_id][0] - center[0])
-        for drone_id in range(2, 8)
-    )
-    gaps = [second - first for first, second in zip(angles, angles[1:])]
-
-    for gap in gaps:
-        assert gap == pytest.approx(math.pi / 3)
-
-
-@pytest.mark.parametrize("nb_drones", [2, 4, 7])
+@pytest.mark.parametrize("nb_drones", [2, 4, RING_SLOTS])
 def test_neighbours_never_overlap(nb_drones: int) -> None:
     layout = make_crowd(nb_drones)
     points = list(layout.points_at(0).values())
@@ -229,10 +242,10 @@ def test_neighbours_never_overlap(nb_drones: int) -> None:
 
 
 def test_no_two_drones_share_a_point() -> None:
-    layout = make_crowd(7)
+    layout = make_crowd(RING_SLOTS)
     points = layout.points_at(0)
 
-    assert len(set(points.values())) == 7
+    assert len(set(points.values())) == RING_SLOTS
 
 
 def test_a_transit_drone_sits_on_the_connection_midpoint() -> None:

@@ -1,6 +1,12 @@
 import flet as ft
 
-from .theme import DRONE, TURN_SECONDS, animation_ms
+from .theme import (
+    DRONE,
+    DRONE_OUTLINE,
+    TURN_SECONDS,
+    animation_ms,
+    outline_width,
+)
 from .drone_layout import Point, top_left
 
 
@@ -16,6 +22,7 @@ class DroneMarker(ft.Container):
             height=radius * 2.0,
             bgcolor=DRONE,
             shape=ft.BoxShape.CIRCLE,
+            border=ft.Border.all(outline_width(radius), DRONE_OUTLINE),
             tooltip=f"D{drone_id}",
         )
         self.set_duration(animation_ms(TURN_SECONDS))
