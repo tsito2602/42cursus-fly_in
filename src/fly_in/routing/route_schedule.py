@@ -37,6 +37,10 @@ class RouteSchedule:
             (len(route) - 1 for route in self._routes.values()), default=0
         )
 
+    @property
+    def drone_ids(self) -> tuple[int, ...]:
+        return tuple(sorted(self._routes))
+
     def add_route(self, drone_id: int, route: Route) -> None:
         """Register a drone route and reserve all resources it uses."""
 
