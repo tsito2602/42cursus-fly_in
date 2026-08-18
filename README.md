@@ -317,7 +317,9 @@ while preserving the aspect ratio.
 
 Zone names are not drawn on the map, so no label can ever cover another one.
 Resting the pointer on a zone shows its name, role, type, capacity, position
-and color instead. Resting it on a drone shows its identifier.
+and color instead. Resting it on a connection line shows the two zones it
+joins, in no particular direction, and its capacity, and resting it on a drone
+shows its identifier.
 
 Two to six drones sharing a location sit on the corners of a regular polygon
 around its center, so the group stays balanced. From seven, they stack on the
@@ -405,7 +407,7 @@ make lint
 make lint-strict
 ~~~
 
-The test suite currently contains 267 tests covering:
+The test suite currently contains 285 tests covering:
 
 - valid maps, comments, metadata, and defaults;
 - malformed lines, duplicate definitions, and invalid references;
@@ -578,7 +580,7 @@ Turn 2: restricted
 
 ## Testing and Quality
 
-267件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
+285件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
 そしてGUIの座標変換・配置・操作を
 確認している。
 

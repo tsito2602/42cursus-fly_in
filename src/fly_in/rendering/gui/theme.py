@@ -2,7 +2,7 @@
 
 from typing import TypeAlias
 
-from fly_in.models import Zone, ZoneRole, ZoneType
+from fly_in.models import Connection, Zone, ZoneRole, ZoneType
 
 CANVAS_WIDTH = 1200
 CANVAS_HEIGHT = 700
@@ -32,6 +32,8 @@ TYPE_COLORS = {
 DASHED_TYPES = (ZoneType.RESTRICTED, ZoneType.BLOCKED)
 OUTLINE_WIDTH = 3.0
 DASH_PATTERN = (6.0, 4.0)
+
+LINK_HOVER_THICKNESS = 12.0
 
 ROLE_LABELS = {
     ZoneRole.START: "START",
@@ -126,6 +128,17 @@ def zone_details(zone: Zone) -> str:
         lines.append(f"color: {zone.color}")
 
     return "\n".join(lines)
+
+
+def connection_details(connection: Connection) -> str:
+    """Return the lines describing a connection on its tooltip."""
+
+    return "\n".join(
+        [
+            f"zones: {connection.zone_a} - {connection.zone_b}",
+            f"capacity: {connection.capacity}",
+        ]
+    )
 
 
 def zone_radius(scale: float) -> float:

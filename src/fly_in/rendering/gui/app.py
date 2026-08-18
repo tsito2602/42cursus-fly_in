@@ -4,7 +4,7 @@ from typing import Awaitable, Callable, cast
 
 import flet as ft
 
-from fly_in.models import Map
+from fly_in.models import Connection, Map
 from fly_in.routing import RouteSchedule
 
 from .controls import ControlBar
@@ -28,6 +28,7 @@ from .theme import (
     is_rainbow,
 )
 from .timeline import SimulationTimeline
+from .link_hotspot import LinkHotspot
 from .rainbow_zone import RainbowZone
 from .zone_hotspot import ZoneHotspot
 from .view_transform import ViewTransform
@@ -93,6 +94,7 @@ class Board(ft.Stack):
         self.controls = [
             NetworkCanvas(self._map, transform, self._width, self._height),
             *self._make_rainbows(transform),
+            *self._make_links(transform),
             *self._make_hotspots(transform),
             *self._markers.values(),
             *self._badges.values(),
@@ -113,6 +115,28 @@ class Board(ft.Stack):
             for zone in self._map.zones.values()
             if is_rainbow(zone)
         ]
+
+    def _make_links(self, transform: ViewTransform) -> list[LinkHotspot]:
+        """Return the hover area covering every connection line."""
+
+        return [
+            self._link(connection, transform)
+            for connection in self._map.connections
+        ]
+
+    def _link(
+        self, connection: Connection, transform: ViewTransform
+    ) -> LinkHotspot:
+        """Return the hover area lying along one connection line."""
+
+        zone_a = self._map.zones[connection.zone_a]
+        zone_b = self._map.zones[connection.zone_b]
+
+        return LinkHotspot(
+            connection,
+            transform.to_pixel(zone_a.x, zone_a.y),
+            transform.to_pixel(zone_b.x, zone_b.y),
+        )
 
     def _make_hotspots(
         self, transform: ViewTransform
