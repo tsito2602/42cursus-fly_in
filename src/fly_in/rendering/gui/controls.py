@@ -21,7 +21,8 @@ class ControlBar(ft.Row):
             icon=ft.Icons.PLAY_ARROW, tooltip="Play", on_click=on_toggle
         )
         self._speed = ft.TextButton(
-            content="1x", tooltip="Speed", on_click=on_speed
+            content="1x", tooltip="Speed", on_click=on_speed,
+            style=ft.ButtonStyle(mouse_cursor=ft.MouseCursor.CLICK),
         )
         self._slider = ft.Slider(
             min=0,
@@ -38,22 +39,26 @@ class ControlBar(ft.Row):
                     icon=ft.Icons.SKIP_PREVIOUS,
                     tooltip="First turn",
                     on_click=self._first,
+                    mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 ft.IconButton(
                     icon=ft.Icons.CHEVRON_LEFT,
                     tooltip="Previous turn",
                     on_click=self._previous,
+                    mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 self._play,
                 ft.IconButton(
                     icon=ft.Icons.CHEVRON_RIGHT,
                     tooltip="Next turn",
                     on_click=self._next,
+                    mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 ft.IconButton(
                     icon=ft.Icons.SKIP_NEXT,
                     tooltip="Last turn",
                     on_click=self._last,
+                    mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 self._speed,
                 self._slider,
