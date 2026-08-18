@@ -1,4 +1,4 @@
-"""Render a route schedule as colored terminal output."""
+"""Render a route schedule as terminal output."""
 
 from fly_in.routing import RouteSchedule, Transit
 
