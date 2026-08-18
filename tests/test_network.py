@@ -1,5 +1,6 @@
 """Test the static shapes drawn for the map."""
 
+import flet as ft
 import flet.canvas as cv
 import pytest
 
@@ -9,7 +10,9 @@ from fly_in.rendering.gui.network import NetworkCanvas
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    RAINBOW_COLORS,
     ROLE_COLORS,
+    zone_fill,
 )
 from fly_in.rendering.gui.view_transform import ViewTransform
 
@@ -24,6 +27,7 @@ def make_zone(
     role: ZoneRole,
     zone_type: ZoneType = ZoneType.NORMAL,
     capacity: int | None = 1,
+    color: str | None = None,
 ) -> Zone:
     return Zone(
         name=name,
@@ -31,7 +35,7 @@ def make_zone(
         y=y,
         zone_role=role,
         zone_type=zone_type,
-        color=None,
+        color=color,
         capacity=capacity,
     )
 
@@ -142,3 +146,28 @@ def test_a_wider_link_is_drawn_thicker() -> None:
     )
 
     assert widths == [5.0, 13.0]
+
+
+def fills_of(canvas: NetworkCanvas) -> list[ft.Paint]:
+    """Return the paint of every filled zone circle."""
+
+    return [
+        shape.paint
+        for shape in canvas.shapes
+        if isinstance(shape, cv.Circle)
+        and shape.paint is not None
+        and shape.paint.style is not ft.PaintingStyle.STROKE
+    ]
+
+
+def test_a_plain_zone_is_filled_with_one_color() -> None:
+    zone = make_zone("middle", 2, 0, ZoneRole.HUB, color="red")
+    middle = fills_of(make_canvas(zone))[1]
+
+    assert middle.gradient is None
+    assert middle.color == zone_fill(zone)
+
+
+def test_the_rainbow_closes_on_itself() -> None:
+    assert RAINBOW_COLORS[0] == RAINBOW_COLORS[-1]
+    assert len(set(RAINBOW_COLORS)) == len(RAINBOW_COLORS) - 1

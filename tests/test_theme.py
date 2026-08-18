@@ -4,6 +4,8 @@ import pytest
 
 from fly_in.models import Zone, ZoneRole, ZoneType
 from fly_in.rendering.gui.theme import (
+    RAINBOW,
+    RAINBOW_COLORS,
     DRONE,
     DRONE_OUTLINE,
     RGB_COLORS,
@@ -11,6 +13,7 @@ from fly_in.rendering.gui.theme import (
     TURN_SECONDS,
     animation_ms,
     drawn_radius,
+    is_rainbow,
     outline_width,
     TYPE_COLORS,
     to_hex,
@@ -187,3 +190,19 @@ def brightness(color: str) -> int:
 
 def test_the_outline_is_much_darker_than_the_marker() -> None:
     assert brightness(DRONE_OUTLINE) < brightness(DRONE) / 2
+
+
+def test_the_rainbow_name_is_recognised() -> None:
+    assert is_rainbow(make_zone(RAINBOW)) is True
+
+
+def test_another_color_is_not_the_rainbow() -> None:
+    assert is_rainbow(make_zone("red")) is False
+    assert is_rainbow(make_zone(None)) is False
+
+
+@pytest.mark.parametrize("color", list(RAINBOW_COLORS))
+def test_every_rainbow_color_is_a_hex_string(color: str) -> None:
+    assert len(color) == 7
+    assert color.startswith("#")
+    assert int(color[1:], 16) >= 0

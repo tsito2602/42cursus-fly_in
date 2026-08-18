@@ -306,6 +306,7 @@ while preserving the aspect ratio.
 | Channel | Meaning |
 | --- | --- |
 | Fill color | <code>color=</code> metadata, or the zone type when absent |
+| Rainbow gradient | <code>color=rainbow</code>, swept around the zone center |
 | Outline color | Zone type: normal, priority, restricted, blocked |
 | Dashed outline | Restricted or blocked zone |
 | Circle size | Start and end hubs are drawn larger |
@@ -404,7 +405,7 @@ make lint
 make lint-strict
 ~~~
 
-The test suite currently contains 254 tests covering:
+The test suite currently contains 267 tests covering:
 
 - valid maps, comments, metadata, and defaults;
 - malformed lines, duplicate definitions, and invalid references;
@@ -577,7 +578,7 @@ Turn 2: restricted
 
 ## Testing and Quality
 
-254件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
+267件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
 そしてGUIの座標変換・配置・操作を
 確認している。
 

@@ -45,6 +45,17 @@ ROLE_COLORS = {
     ZoneRole.END: "#facc15",  # yellow
 }
 
+RAINBOW = "rainbow"
+RAINBOW_COLORS = (
+    "#ff0000",  # red
+    "#ff7f00",  # orange
+    "#ffff00",  # yellow
+    "#00ff00",  # green
+    "#0000ff",  # blue
+    "#8b00ff",  # violet
+    "#ff0000",  # back to red, so the sweep has no seam
+)
+
 RGB: TypeAlias = tuple[int, int, int]
 
 RGB_COLORS: dict[str, RGB] = {
@@ -72,6 +83,12 @@ def to_hex(rgb: RGB) -> str:
 
     red, green, blue = rgb
     return f"#{red:02x}{green:02x}{blue:02x}"
+
+
+def is_rainbow(zone: Zone) -> bool:
+    """Tell whether a zone asks for the rainbow gradient."""
+
+    return zone.color == RAINBOW
 
 
 def zone_fill(zone: Zone) -> str:

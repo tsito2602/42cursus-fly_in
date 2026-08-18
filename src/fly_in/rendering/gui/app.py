@@ -25,8 +25,10 @@ from .theme import (
     crowd_radius,
     drawn_radius,
     drone_radius,
+    is_rainbow,
 )
 from .timeline import SimulationTimeline
+from .rainbow_zone import RainbowZone
 from .zone_hotspot import ZoneHotspot
 from .view_transform import ViewTransform
 from .drone_layout import DroneLayout, Point
@@ -90,11 +92,27 @@ class Board(ft.Stack):
         self._badges = self._make_badges(transform)
         self.controls = [
             NetworkCanvas(self._map, transform, self._width, self._height),
+            *self._make_rainbows(transform),
             *self._make_hotspots(transform),
             *self._markers.values(),
             *self._badges.values(),
         ]
         self._show_crowds()
+
+    def _make_rainbows(
+        self, transform: ViewTransform
+    ) -> list[RainbowZone]:
+        """Return the gradient covering every rainbow zone."""
+
+        return [
+            RainbowZone(
+                zone,
+                drawn_radius(zone, transform.scale),
+                transform.to_pixel(zone.x, zone.y),
+            )
+            for zone in self._map.zones.values()
+            if is_rainbow(zone)
+        ]
 
     def _make_hotspots(
         self, transform: ViewTransform
@@ -169,7 +187,7 @@ class FlyInApp:
             on_speed=self._next_speed,
         )
 
-    async def build(self, page: ft.Page) -> None:
+    def build(self, page: ft.Page) -> None:
         """Populate the page with the visualizer layout."""
 
         page.title = "Fly-in"
@@ -192,15 +210,22 @@ class FlyInApp:
                 spacing=0,
             )
         )
-        await self._center(page.window)
+        page.run_task(self._center, page.window)
 
     @staticmethod
     async def _center(window: ft.Window) -> None:
-        """Move the window to the middle of the screen."""
+        """Move the window to the middle of the screen.
+
+        The desktop client answers this request only once it is running, so
+        the layout is added first and a late or missing answer is ignored.
+        """
 
         center = cast(Callable[[], Awaitable[None]], window.center)
 
-        await center()
+        try:
+            await center()
+        except RuntimeError:
+            pass
 
     def _status_text(self) -> str:
         """Return the status line for the current turn."""

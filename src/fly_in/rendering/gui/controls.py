@@ -2,6 +2,8 @@ import flet as ft
 
 from typing import Callable
 
+from .theme import LABEL
+
 
 class ControlBar(ft.Row):
     """Show the playback buttons, the speed button, and the turn slider."""
@@ -18,11 +20,16 @@ class ControlBar(ft.Row):
         self._on_step = on_step
         self._on_seek = on_seek
         self._play = ft.IconButton(
-            icon=ft.Icons.PLAY_ARROW, tooltip="Play", on_click=on_toggle
+            icon=ft.Icons.PLAY_ARROW,
+            icon_color=LABEL,
+            tooltip="Play",
+            on_click=on_toggle,
         )
         self._speed = ft.TextButton(
             content="1x", tooltip="Speed", on_click=on_speed,
-            style=ft.ButtonStyle(mouse_cursor=ft.MouseCursor.CLICK),
+            style=ft.ButtonStyle(
+                color=LABEL, mouse_cursor=ft.MouseCursor.CLICK
+            ),
         )
         self._slider = ft.Slider(
             min=0,
@@ -38,12 +45,14 @@ class ControlBar(ft.Row):
                 ft.IconButton(
                     icon=ft.Icons.SKIP_PREVIOUS,
                     tooltip="First turn",
+                    icon_color=LABEL,
                     on_click=self._first,
                     mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 ft.IconButton(
                     icon=ft.Icons.CHEVRON_LEFT,
                     tooltip="Previous turn",
+                    icon_color=LABEL,
                     on_click=self._previous,
                     mouse_cursor=ft.MouseCursor.CLICK
                 ),
@@ -51,12 +60,14 @@ class ControlBar(ft.Row):
                 ft.IconButton(
                     icon=ft.Icons.CHEVRON_RIGHT,
                     tooltip="Next turn",
+                    icon_color=LABEL,
                     on_click=self._next,
                     mouse_cursor=ft.MouseCursor.CLICK
                 ),
                 ft.IconButton(
                     icon=ft.Icons.SKIP_NEXT,
                     tooltip="Last turn",
+                    icon_color=LABEL,
                     on_click=self._last,
                     mouse_cursor=ft.MouseCursor.CLICK
                 ),
