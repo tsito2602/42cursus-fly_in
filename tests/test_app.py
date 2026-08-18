@@ -13,6 +13,7 @@ from fly_in.rendering.gui.app import Board, FlyInApp
 from fly_in.rendering.gui.drone_layout import DroneLayout, Point
 from fly_in.rendering.gui.crowd_badge import CrowdBadge
 from fly_in.rendering.gui.drone_marker import DroneMarker
+from fly_in.rendering.gui.zone_hotspot import ZoneHotspot
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -23,7 +24,9 @@ from fly_in.rendering.gui.theme import (
     DRONE_OUTLINE,
     SPEEDS,
     animation_ms,
+    drawn_radius,
     drone_radius,
+    zone_details,
     outline_width,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
@@ -621,3 +624,70 @@ def test_every_badge_carries_a_dark_outline() -> None:
         assert border is not None
         assert border.top is not None
         assert border.top.color == DRONE_OUTLINE
+
+
+def hotspots_of(board: Board) -> list[ZoneHotspot]:
+    """Return the hover area of every zone."""
+
+    return [
+        control
+        for control in board.controls
+        if isinstance(control, ZoneHotspot)
+    ]
+
+
+def test_every_zone_carries_a_hover_area() -> None:
+    board, _, _ = make_board()
+
+    assert len(hotspots_of(board)) == len(make_map().zones)
+
+
+def test_a_hover_area_shows_the_details_of_its_zone() -> None:
+    board, _, _ = make_board()
+    map = make_map()
+    tooltips = [hotspot.tooltip for hotspot in hotspots_of(board)]
+
+    assert tooltips == [
+        zone_details(zone) for zone in map.zones.values()
+    ]
+
+
+def test_a_hover_area_covers_its_zone_circle() -> None:
+    board, _, _ = make_board()
+    map = make_map()
+    transform = make_transform()
+
+    for hotspot, zone in zip(hotspots_of(board), map.zones.values()):
+        radius = drawn_radius(zone, transform.scale)
+        x, y = transform.to_pixel(zone.x, zone.y)
+
+        assert hotspot.width == radius * 2.0
+        assert hotspot.left == x - radius
+        assert hotspot.top == y - radius
+
+
+def test_a_hover_area_stays_under_the_drones() -> None:
+    board, _, _ = make_board()
+    controls = board.controls
+    hotspots = [
+        index
+        for index, control in enumerate(controls)
+        if isinstance(control, ZoneHotspot)
+    ]
+    markers = [
+        index
+        for index, control in enumerate(controls)
+        if isinstance(control, DroneMarker)
+    ]
+
+    assert max(hotspots) < min(markers)
+
+
+def test_a_resize_moves_every_hover_area() -> None:
+    board, _, _ = make_board()
+    before = [hotspot.left for hotspot in hotspots_of(board)]
+
+    board.resize(600, 400)
+
+    assert [hotspot.left for hotspot in hotspots_of(board)] != before
+    assert len(hotspots_of(board)) == len(make_map().zones)

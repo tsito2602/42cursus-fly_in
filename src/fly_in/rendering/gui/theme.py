@@ -38,6 +38,8 @@ ROLE_LABELS = {
     ZoneRole.END: "GOAL",
 }
 
+ROLE_RADIUS = 1.35
+
 ROLE_COLORS = {
     ZoneRole.START: "#4ade80",  # green
     ZoneRole.END: "#facc15",  # yellow
@@ -89,19 +91,39 @@ def outline_dashed(zone_type: ZoneType) -> bool:
     return zone_type in DASHED_TYPES
 
 
-def zone_label(zone: Zone) -> str:
-    """Return the zone name, with its capacity when it is limited."""
+def zone_details(zone: Zone) -> str:
+    """Return the lines describing a zone on its tooltip."""
 
-    if zone.capacity is None or zone.capacity == 1:
-        return zone.name
+    capacity = "unlimited" if zone.capacity is None else zone.capacity
+    lines = [
+        f"name: {zone.name}",
+        f"type: {zone.zone_type.value}",
+        f"capacity: {capacity}",
+        f"position: ({zone.x}, {zone.y})",
+    ]
 
-    return f"{zone.name} ×{zone.capacity}"
+    if zone.zone_role is not ZoneRole.HUB:
+        lines.insert(1, f"role: {zone.zone_role.value}")
+
+    if zone.color is not None:
+        lines.append(f"color: {zone.color}")
+
+    return "\n".join(lines)
 
 
 def zone_radius(scale: float) -> float:
     """Return the drawing radius of a zone circle."""
 
     return min(scale * 0.22, 26.0)
+
+
+def drawn_radius(zone: Zone, scale: float) -> float:
+    """Return the radius of a zone, the start and the end being larger."""
+
+    if zone.zone_role is ZoneRole.HUB:
+        return zone_radius(scale)
+
+    return zone_radius(scale) * ROLE_RADIUS
 
 
 def label_size(scale: float) -> float:

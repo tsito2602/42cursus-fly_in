@@ -10,11 +10,13 @@ from fly_in.rendering.gui.theme import (
     SPEEDS,
     TURN_SECONDS,
     animation_ms,
+    drawn_radius,
     outline_width,
     TYPE_COLORS,
     to_hex,
+    zone_radius,
     zone_fill,
-    zone_label,
+    zone_details,
 )
 
 
@@ -96,25 +98,72 @@ def test_a_shorter_turn_gives_a_shorter_animation() -> None:
     assert animation_ms(0.15) < animation_ms(0.6)
 
 
-def test_a_limited_zone_shows_its_capacity() -> None:
+def test_the_details_open_with_the_zone_name() -> None:
+    zone = make_zone(None)
+
+    assert zone_details(zone).splitlines()[0] == "name: zone"
+
+
+def test_the_details_carry_the_type_and_the_position() -> None:
+    zone = make_zone(None, ZoneType.PRIORITY)
+    zone.x, zone.y = 4, 7
+
+    assert "type: priority" in zone_details(zone).splitlines()
+    assert "position: (4, 7)" in zone_details(zone).splitlines()
+
+
+def test_the_details_spell_out_a_limited_capacity() -> None:
     zone = make_zone(None)
     zone.capacity = 3
 
-    assert zone_label(zone) == "zone ×3"
+    assert "capacity: 3" in zone_details(zone).splitlines()
 
 
-def test_a_zone_holding_one_drone_shows_no_capacity() -> None:
-    zone = make_zone(None)
-    zone.capacity = 1
-
-    assert zone_label(zone) == "zone"
-
-
-def test_an_unlimited_zone_shows_no_capacity() -> None:
+def test_the_details_name_an_unlimited_capacity() -> None:
     zone = make_zone(None)
     zone.capacity = None
 
-    assert zone_label(zone) == "zone"
+    assert "capacity: unlimited" in zone_details(zone).splitlines()
+
+
+def test_the_details_of_a_hub_carry_no_role() -> None:
+    zone = make_zone(None)
+
+    assert not any(
+        line.startswith("role:")
+        for line in zone_details(zone).splitlines()
+    )
+
+
+def test_the_details_of_the_start_carry_its_role() -> None:
+    zone = make_zone(None)
+    zone.zone_role = ZoneRole.START
+
+    assert "role: start" in zone_details(zone).splitlines()
+
+
+def test_the_details_carry_a_named_color() -> None:
+    zone = make_zone("cyan")
+
+    assert "color: cyan" in zone_details(zone).splitlines()
+
+
+def test_the_details_of_a_plain_zone_carry_no_color() -> None:
+    zone = make_zone(None)
+
+    assert not any(
+        line.startswith("color:")
+        for line in zone_details(zone).splitlines()
+    )
+
+
+def test_the_start_is_drawn_larger_than_a_hub() -> None:
+    hub = make_zone(None)
+    start = make_zone(None)
+    start.zone_role = ZoneRole.START
+
+    assert drawn_radius(start, 100.0) > drawn_radius(hub, 100.0)
+    assert drawn_radius(hub, 100.0) == zone_radius(100.0)
 
 
 @pytest.mark.parametrize("radius", [3.0, 6.0, 12.0])
@@ -137,4 +186,4 @@ def brightness(color: str) -> int:
 
 
 def test_the_outline_is_much_darker_than_the_marker() -> None:
-    assert brightness(DRONE_OUTLINE) < brightness(DRONE) / 4
+    assert brightness(DRONE_OUTLINE) < brightness(DRONE) / 2

@@ -310,10 +310,13 @@ while preserving the aspect ratio.
 | Dashed outline | Restricted or blocked zone |
 | Circle size | Start and end hubs are drawn larger |
 | <code>START</code> / <code>GOAL</code> badge | Start and end hubs |
-| <code>×N</code> after a name | <code>max_drones</code>, when it is limited |
 | Line width | <code>max_link_capacity</code> of a connection |
 | White dot | One drone, animated between turns, outlined in the background color so it stays visible on any zone |
 | Numbered dot | Seven or more drones stacked on one location |
+
+Zone names are not drawn on the map, so no label can ever cover another one.
+Resting the pointer on a zone shows its name, role, type, capacity, position
+and color instead. Resting it on a drone shows its identifier.
 
 Two to six drones sharing a location sit on the corners of a regular polygon
 around its center, so the group stays balanced. From seven, they stack on the
@@ -401,7 +404,7 @@ make lint
 make lint-strict
 ~~~
 
-The test suite currently contains 244 tests covering:
+The test suite currently contains 254 tests covering:
 
 - valid maps, comments, metadata, and defaults;
 - malformed lines, duplicate definitions, and invalid references;
@@ -574,7 +577,7 @@ Turn 2: restricted
 
 ## Testing and Quality
 
-244件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
+254件のテストで、パーサー、モデル、経路探索、予約表、ターミナル表示、
 そしてGUIの座標変換・配置・操作を
 確認している。
 

@@ -4,17 +4,15 @@ import flet.canvas as cv
 from fly_in.models import Map, Connection, Zone, ZoneRole, ZoneType
 from .theme import (
     DASH_PATTERN,
-    LABEL,
     LINE,
     OUTLINE_WIDTH,
     ROLE_COLORS,
     ROLE_LABELS,
     TYPE_COLORS,
+    drawn_radius,
     label_size,
     outline_dashed,
     zone_fill,
-    zone_label,
-    zone_radius,
 )
 from .view_transform import ViewTransform
 
@@ -31,7 +29,6 @@ class NetworkCanvas(cv.Canvas):
     ) -> None:
         self._map = map
         self._transform = transform
-        self._radius = zone_radius(transform.scale)
         self._font = label_size(transform.scale)
 
         shapes: list[cv.Shape] = []
@@ -71,9 +68,7 @@ class NetworkCanvas(cv.Canvas):
         """Return the shapes drawing one zone."""
 
         x, y = self._transform.to_pixel(zone.x, zone.y)
-        radius = self._radius * (
-            1.0 if zone.zone_role is ZoneRole.HUB else 1.35
-        )
+        radius = drawn_radius(zone, self._transform.scale)
 
         shapes: list[cv.Shape] = [
             cv.Circle(
@@ -87,13 +82,6 @@ class NetworkCanvas(cv.Canvas):
                 y=y,
                 radius=radius,
                 paint=self._outline_paint(zone),
-            ),
-            cv.Text(
-                x=x,
-                y=y + radius + 4,
-                value=zone_label(zone),
-                style=ft.TextStyle(size=self._font, color=LABEL),
-                alignment=ft.Alignment.TOP_CENTER,
             ),
         ]
 

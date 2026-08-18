@@ -97,27 +97,17 @@ def test_a_hub_carries_no_role_badge() -> None:
     ]
 
     assert len(badges) == 2
-    assert texts_of(canvas) == [
-        "start",
-        "START",
-        "middle",
-        "goal",
-        "GOAL",
-    ]
+    assert texts_of(canvas) == ["START", "GOAL"]
 
 
-def test_a_limited_zone_shows_its_capacity() -> None:
+def test_no_zone_name_is_drawn_on_the_canvas() -> None:
     canvas = make_canvas(
         make_zone("middle", 2, 0, ZoneRole.HUB, capacity=4)
     )
 
-    assert "middle ×4" in texts_of(canvas)
-
-
-def test_an_unlimited_zone_shows_no_capacity() -> None:
-    canvas = make_canvas(make_zone("middle", 2, 0, ZoneRole.HUB))
-
-    assert "middle" in texts_of(canvas)
+    for text in texts_of(canvas):
+        assert "middle" not in text
+        assert "4" not in text
 
 
 def test_a_blocked_zone_is_crossed_out() -> None:

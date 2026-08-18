@@ -21,9 +21,11 @@ from .theme import (
     animation_ms,
     crowd_font,
     crowd_radius,
+    drawn_radius,
     drone_radius,
 )
 from .timeline import SimulationTimeline
+from .zone_hotspot import ZoneHotspot
 from .view_transform import ViewTransform
 from .drone_layout import DroneLayout, Point
 from .drone_marker import DroneMarker
@@ -86,10 +88,25 @@ class Board(ft.Stack):
         self._badges = self._make_badges(transform)
         self.controls = [
             NetworkCanvas(self._map, transform, self._width, self._height),
+            *self._make_hotspots(transform),
             *self._markers.values(),
             *self._badges.values(),
         ]
         self._show_crowds()
+
+    def _make_hotspots(
+        self, transform: ViewTransform
+    ) -> list[ZoneHotspot]:
+        """Return the hover area covering every zone circle."""
+
+        return [
+            ZoneHotspot(
+                zone,
+                drawn_radius(zone, transform.scale),
+                transform.to_pixel(zone.x, zone.y),
+            )
+            for zone in self._map.zones.values()
+        ]
 
     def _make_markers(
         self, transform: ViewTransform
