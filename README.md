@@ -23,23 +23,26 @@
   <a href="#algorithm-space-time-a">Algorithm</a> •
   <a href="#visualizer">Visualizer</a> •
   <a href="#performance">Performance</a> •
-  <a href="#Japanese">Japanese</a>
+  <a href="#japanese">Japanese</a>
 </p>
 
 ## Description
 
-Fly-in reads a map — a graph of zones joined by bidirectional connections —
-and moves every drone from the start hub to the goal in as few turns as
-possible.
+Fly-in is a project from the 42 curriculum that focuses on designing an
+efficient drone-routing system. The program reads a graph of zones connected
+by bidirectional links and routes a fleet of drones from the start zone
+(`start_hub`) to the end zone (`end_hub`). The main objective is to move
+every drone to the end zone in the fewest possible simulation turns.
 
-Zones and connections hold only a limited number of drones at a time, so a
-plan cannot stop at *which way* a drone goes. It must also decide *when* the
-drone may be there. That is why the planner searches over space **and** time.
+Drones can move simultaneously, but every move must respect the capacity of
+both zones and connections. The planner must account for the movement costs of
+different zone types, distribute drones across multiple paths, wait when
+movement is not possible, and avoid conflicts and deadlocks. The simulation
+also provides visual feedback showing the network and drone positions.
 
-The goal is to land every drone on the end hub in the fewest simulation turns,
-handling distribution across multiple paths, strategic waiting, and deadlock
-avoidance. The graph logic is written from scratch — no `networkx`, `graphlib`
-or similar — in fully object-oriented, `mypy --strict` clean Python.
+As required by the subject, the project is fully object-oriented and type-safe.
+Its graph logic is implemented without libraries such as `networkx` or
+`graphlib`, and the code passes both `flake8` and `mypy --strict`.
 
 ## Instructions
 
@@ -76,10 +79,10 @@ make clean        # remove Python caches
 
 ## Map format
 
-A map begins with the drone count. Every zone must be defined before the
-connections that reference it. Metadata is optional and goes in square
+A map begins with the number of drones. Every zone must be defined before any
+connection that references it. Optional metadata is enclosed in square
 brackets. Lines starting with `#` are comments, and zone names cannot contain
-spaces or dashes.
+spaces or hyphens.
 
 ~~~text
 # maps/easy/01_linear_path.txt
@@ -117,9 +120,10 @@ Running the two-drone map above:
 uv run fly-in maps/easy/01_linear_path.txt
 ~~~
 
-Each output line is one simulation turn, listing only the drones that moved.
-Waiting and delivered drones are left out, and a drone crossing into a
-`restricted` zone shows both ends of its connection:
+Each line of output represents one simulation turn and lists only the drones
+that moved. Drones that are waiting or have already arrived are omitted. A
+drone traveling toward a `restricted` zone is shown with both endpoints of
+the connection:
 
 ~~~text
 D1-waypoint1
@@ -132,9 +136,9 @@ Both drones reach the goal in 4 turns.
 
 ## Algorithm: Space-Time A*
 
-Plain A* answers "which zone comes next?". That is not enough here: a zone
-that is full on turn 3 may be free on turn 4, so the same zone can be both a
-dead end and a good move depending on the timing.
+Plain A* answers the question, "Which zone comes next?" That is not enough
+here: a zone that is full on turn 3 may be free on turn 4, so the same zone can
+be either a dead end or the best move depending on the timing.
 
 `Space-Time A*` solves this by putting the clock inside the search state.
 A node is not a zone but a zone *at a given turn*:
@@ -146,7 +150,7 @@ class _SearchState:
     zone_name: str
 ~~~
 
-From there the search is ordinary A*, with three pieces:
+From there, the search proceeds like ordinary A*, with three key elements:
 
 **1. Cost function**
 
@@ -164,25 +168,25 @@ are broken in favor of `priority` zones.
 
 **2. Neighbors**
 
-Each state expands into a move to every adjacent zone, plus a one-turn wait in
-place. Waiting is a real option: it is often faster to let a busy corridor
-clear than to detour around it. A move is dropped when the destination is
-`blocked`, or when the zone or the connection is already fully booked for the
-turns involved.
+Each state expands into moves to adjacent zones and the option to wait in
+place for one turn. Waiting is a meaningful choice: letting a busy corridor
+clear is often faster than taking a detour. A move is discarded if the
+destination is `blocked`, or if the zone or connection is already at capacity
+during any of the required turns.
 
 **3. Cooperative reservations**
 
-Drones are planned one at a time. Once a route is found, the turns it occupies
-are recorded in `RouteSchedule`:
+Routes are planned one drone at a time. Once a route is found, its occupied
+time slots are recorded in `RouteSchedule`:
 
 ~~~python
 ZoneSlot       = tuple[int, str]        # (turn, zone)          -> drones inside
 ConnectionSlot = tuple[int, str, str]   # (turn, zone_a, zone_b) -> drones crossing
 ~~~
 
-Connection endpoints are sorted before use as a key, so both directions of
-travel draw on the same capacity. The next drone sees those bookings as walls
-and routes — or waits — around them.
+Connection endpoints are sorted before they are used as a key, so travel in
+either direction consumes the same shared capacity. The next drone treats
+those reservations as constraints and either routes around them or waits.
 
 Entering a `restricted` zone takes two turns, spent on the connection itself:
 
@@ -216,16 +220,16 @@ The terminal output stays plain text, because the subject fixes its format
 exactly. The visual feedback therefore lives in the GUI: `--gui` opens a Flet
 window replaying the same schedule.
 
-Turn-by-turn text answers *what* happened; the window answers *why*. Watching
-the drones move makes the plan legible at a glance — where the fleet splits
-across parallel paths, which corridor is the bottleneck everyone queues for,
-and why a drone chose to wait rather than detour. Zones keep the coordinates
-from the map file, rescaled to fit the canvas without distorting the aspect
-ratio, so a map keeps the shape its author drew. The window can be resized
-freely and the map refits itself.
+The turn-by-turn text shows *what* happened; the window helps explain *why*.
+Watching the drones move reveals where the fleet splits across parallel
+paths, which corridor creates a bottleneck, and why a drone waits instead of
+taking a detour. Zones retain the coordinates from the map file and are scaled
+to fit the canvas without changing the aspect ratio, preserving the shape
+drawn by the map author. The window is freely resizable, and the map adjusts
+to fit it.
 
-Every rule of the map format has its own visual channel, so the constraints
-the planner obeys can be checked against the picture:
+Each element of the map format has its own visual representation, making it
+possible to verify the planner's constraints directly in the visualization:
 
 | Channel | Meaning |
 | --- | --- |
@@ -239,10 +243,10 @@ the planner obeys can be checked against the picture:
 | White dot | One drone, animated between turns |
 | Numbered dot | Seven or more drones stacked on one spot |
 
-Zone names are never drawn on the map, so no label can cover another one.
-Hovering shows the details instead: a zone reports its name, role, type,
-capacity, position and color; a connection reports the two zones it joins and
-its capacity; a drone reports its identifier.
+Zone names are not drawn directly on the map, preventing labels from
+overlapping. The same information is available on hover: a zone shows its
+name, role, type, capacity, position, and color; a connection shows its two
+endpoints and capacity; and a drone shows its identifier.
 
 Two to six drones sharing a spot sit on the corners of a regular polygon
 around its center. From seven, they stack behind a single dot carrying the
@@ -257,31 +261,33 @@ transit sits at the midpoint of its connection.
 | Speed button | Cycle 1x, 2x, 4x, 0.5x |
 | Slider | Jump to any turn |
 
-Playback, the slider and the single-step keys make even a 43-turn schedule
-reviewable: pause on the turn that looks wrong, step back one turn, and read
-the tooltips of the zones involved.
+Playback controls, the slider, and the single-step keys make even a 43-turn
+schedule easy to inspect. Pause at a suspicious turn, step back once, and
+check the tooltips for the zones involved.
 
 ### Why Flet rather than tkinter
 
 **Animation**
 
-A marker declares `ft.Animation` once and is then simply given a new position;
-the framework interpolates the frames. In tkinter the same effect means a
-hand-written `after()` loop redrawing every drone on every frame.
+A marker declares `ft.Animation` once and then only needs to be given a new
+position; the framework interpolates the frames. Achieving the same effect in
+tkinter would require a custom `after()` loop that redraws every drone on each
+frame.
 
 **Ready-made widgets**
 
-The slider, the speed button and a layout that refits itself on resize come
-with the toolkit, instead of being built and repositioned by hand.
+The toolkit provides the slider, speed button, and a layout that automatically
+adapts when the window is resized, avoiding the need to build and reposition
+these elements manually.
 
-tkinter's advantage is needing no dependency at all, but `make install`
-already covers that.
+tkinter has the advantage of requiring no additional dependency, but this
+project already handles dependency installation through `make install`.
 
 ## Performance
 
-The subject scores route quality by simulation turns, not CPU time. Every
-provided map meets or beats its target, and the optional challenger
-reference is beaten by two turns.
+The subject evaluates route quality by the number of simulation turns rather
+than CPU time. Every provided map meets its target, and the optional challenger
+map beats the reference result by two turns.
 
 | Map | Drones | Turns | Target | Margin |
 | --- | ---: | ---: | ---: | ---: |
@@ -311,10 +317,10 @@ src/fly_in/
     └── gui/          # Flet visualizer (board/ draws the map)
 ~~~
 
-286 tests cover map parsing and its error cases, blocked / restricted /
-priority routing, capacity reservations, strategic waiting, terminal output,
-and the visualizer's per-turn state, layout and controls. All sources pass
-`flake8` and `mypy --strict`.
+The 286 tests cover map parsing and error handling, routing through `blocked`,
+`restricted`, and `priority` zones, capacity reservations, strategic waiting,
+terminal output, and the visualizer's per-turn state, layout, and controls.
+All source files pass `flake8` and `mypy --strict`.
 
 ## Resources
 
@@ -327,7 +333,7 @@ and the visualizer's per-turn state, layout and controls. All sources pass
 
 ### AI usage
 
-AI was used throughout the project, on these tasks and these parts:
+AI was used in the following areas of the project:
 
 | Part | How AI was used |
 | --- | --- |
@@ -338,10 +344,10 @@ AI was used throughout the project, on these tasks and these parts:
 | `tests/` | Generating test cases from the edge cases discussed above |
 | `Makefile`, docstrings, `README.md` | Generating the content |
 
-Everything generated was checked against the subject with the test suite,
-`flake8`, `mypy --strict` and the provided maps. The disclosure is explicit so
-the work can be reviewed transparently; the author remains responsible for
-understanding, explaining and maintaining all submitted code.
+All generated content was checked against the subject using the test suite,
+`flake8`, `mypy --strict`, and the provided maps. These uses are disclosed to
+keep the review process transparent. The author remains responsible for
+understanding, explaining, and maintaining all submitted code.
 
 ---
 
@@ -352,16 +358,20 @@ understanding, explaining and maintaining all submitted code.
 
 ## Description
 
-Fly-inは経路計画のシミュレーターである。ゾーンと双方向の接続でできたマップを
-読み込み、すべてのドローンをstartからgoalまで最小のターン数で運ぶ。
+Fly-inは、効率的なドローン経路システムを設計する42cursusの課題である。プログラム
+は、双方向の接続で結ばれたゾーンのグラフを読み込み、ドローンの一団をスタート地点
+（`start_hub`）からゴール地点（`end_hub`）まで移動させる。主な目的は、すべての
+ドローンを可能な限り少ないシミュレーションターンでendゾーンへ到着させることで
+ある。
 
-ゾーンにも接続にも、同時に入れる機数の上限がある。そのため「どの道を通るか」を
-決めるだけでは足りず、「いつそこを通るか」まで決めなければならない。探索する
-空間に時間の軸が加わるのはこのためである。
+ドローンは同時に移動できるが、すべての移動でゾーンと接続の収容数を守る必要が
+ある。経路計画では、ゾーン種別ごとの移動コストを考慮し、複数経路へのドローンの
+分散、移動できない場合の待機、競合とデッドロックの回避を行う。また、ネットワーク
+とドローンの位置を示す視覚的なフィードバックも提供する。
 
-目指すのは全機の到着をできるだけ早く終わらせることで、経路の分散、あえての待機、
-デッドロックの回避がその手段になる。グラフ処理は`networkx`や`graphlib`に頼らず
-自分で実装し、全体をオブジェクト指向で組み、`mypy --strict`を通している。
+課題の要件に従い、プロジェクト全体をオブジェクト指向かつ型安全に実装している。
+グラフ処理には`networkx`や`graphlib`などのライブラリを使用せず、コードは
+`flake8`と`mypy --strict`の両方を通過する。
 
 ## Instructions
 
@@ -397,9 +407,9 @@ make clean        # Pythonのキャッシュを削除する
 
 ## Map format
 
-マップの1行目はドローンの数。ゾーンは、それを使う接続よりも前に定義しておく。
-メタデータは角括弧の中に書き、省略してもよい。`#`から始まる行はコメント。
-ゾーン名に空白とハイフンは使えない。
+マップの先頭にはドローン数を記述する。各ゾーンは、そのゾーンを参照する接続より
+前に定義する必要がある。メタデータは省略可能で、角括弧の中に記述する。`#`から
+始まる行はコメントとして扱われる。ゾーン名に空白やハイフンは使用できない。
 
 ~~~text
 # maps/easy/01_linear_path.txt
@@ -437,9 +447,9 @@ connection: waypoint2-goal
 uv run fly-in maps/easy/01_linear_path.txt
 ~~~
 
-出力は1行が1ターンにあたり、そのターンに動いた機だけを並べる。待機中の機と
-到着済みの機は現れない。`restricted`ゾーンへ向かっている途中の機は、接続の
-両端をハイフンでつないで表す。
+出力の1行がシミュレーションの1ターンに対応し、そのターンに移動した機体だけが
+表示される。待機中の機体と到着済みの機体は省略される。`restricted`ゾーンへ
+移動中の機体は、接続の両端をハイフンでつないで表す。
 
 ~~~text
 D1-waypoint1
@@ -452,12 +462,13 @@ D2-goal
 
 ## Algorithm: Space-Time A*
 
-通常のA*が決めるのは「次にどのゾーンへ進むか」だけだが、この問題ではそれでは
-足りない。3ターン目には満員のゾーンが、4ターン目には空いていることがある。
-同じゾーンが、通るタイミング次第で行き止まりにも最短手にもなるのだ。
+通常のA*が決めるのは「次にどのゾーンへ進むか」だけだが、この問題ではそれだけ
+では不十分である。3ターン目には満員だったゾーンが、4ターン目には空いている
+こともある。同じゾーンでも、通過するタイミングによって行き止まりにも最善の
+選択肢にもなり得る。
 
-`Space-Time A\*`は、探索の状態そのものに時刻を持たせてこれを解く。ノードは
-ゾーンではなく「何ターン目のどのゾーンか」になる。
+`Space-Time A*`では、探索状態に時刻を含めることでこの問題を解決する。ノードは
+単なるゾーンではなく、「何ターン目のどのゾーンか」を表す。
 
 ~~~python
 @dataclass(frozen=True)
@@ -466,7 +477,7 @@ class _SearchState:
     zone_name: str
 ~~~
 
-あとは通常のA*と変わらない。要点は3つある。
+以降の探索は通常のA*と同様である。要点は3つある。
 
 **1. コスト関数**
 
@@ -484,23 +495,24 @@ f(state) = state.turn + min_turns_to_goal[state.zone_name]
 
 **2. 候補の展開**
 
-ひとつの状態からは、隣のゾーンへの移動と、その場で1ターン待つ選択肢を作る。
-待機も立派な一手で、混んだ通路が空くのを待つほうが遠回りより速いことは
-珍しくない。行き先が`blocked`のとき、あるいはそのターンのゾーンや接続が
-すでに埋まっているときは、その移動は作らない。
+ひとつの状態から、隣接する各ゾーンへの移動と、その場で1ターン待機する選択肢を
+生成する。混雑した通路が空くのを待つほうが、迂回するより速い場合もあるため、
+待機も有効な選択肢となる。行き先が`blocked`の場合や、必要なターンにゾーンまたは
+接続がすでに収容上限に達している場合、その移動は候補から除外する。
 
 **3. 協調的な予約**
 
-ドローンは1機ずつ順に計画する。経路が決まった機は、自分が占める時刻と場所を
-`RouteSchedule`に書き込む。
+ドローンの経路は1機ずつ順番に計画する。経路が決まると、その機体が占有する
+時刻と場所を`RouteSchedule`に記録する。
 
 ~~~python
 ZoneSlot       = tuple[int, str]        # (ターン, ゾーン)       -> 中にいる機数
 ConnectionSlot = tuple[int, str, str]   # (ターン, ゾーンa, ゾーンb) -> 通過する機数
 ~~~
 
-接続は両端の名前を並べ替えてから鍵にするので、どちら向きに通っても同じ収容数を
-消費する。次の機はこの予約を壁として扱い、迂回するか、空くまで待つ。
+接続は両端の名前を並べ替えてからキーとして使うため、どちらの方向に通過しても
+同じ収容数を消費する。次の機体はこの予約を制約として扱い、迂回するか、空くまで
+待機する。
 
 `restricted`ゾーンに入るには2ターンかかり、そのうち1ターンは接続の上で過ごす。
 
@@ -530,19 +542,19 @@ flowchart TD
 
 ## Visualizer
 
-ターミナルの出力は課題が形式を厳密に定めているので、飾りのないテキストのままに
-してある。目で見て分かる情報はGUIの役目で、`--gui`を付けるとFletのウィンドウが
-開き、同じ計画を再生する。
+ターミナル出力の形式は課題で厳密に定められているため、装飾のないテキストとして
+表示する。視覚的な情報はGUIが担い、`--gui`を付けるとFletのウィンドウが開いて
+同じ計画を再生する。
 
-ターンごとの文字列から分かるのは「何が起きたか」まで。「なぜそうなったか」は
-動きを見るのが早い。機体がどこで別々の経路に分かれ、どの通路が全機の待ち行列に
-なり、なぜ迂回せずに待つほうを選んだのかが、眺めていれば見えてくる。ゾーンは
-マップファイルの座標をそのまま使い、縦横比を保ったまま画面に収めるので、マップは
-作者が描いたとおりの形で表示される。ウィンドウは自由に伸縮でき、マップもそれに
-追従する。
+ターンごとのテキストから分かるのは「何が起きたか」だが、GUIでは「なぜそう
+なったか」も把握しやすい。機体がどこで複数の経路に分かれ、どの通路がボトル
+ネックになり、なぜ迂回せず待機したのかを動きから確認できる。ゾーンにはマップ
+ファイルの座標を使用し、縦横比を保ったまま画面内に収めるため、作者が意図した
+マップの形状が維持される。ウィンドウは自由に拡大・縮小でき、マップもその大きさに
+合わせて調整される。
 
-マップの書式の要素にはひとつずつ見た目を割り当ててあるので、計画が制約を守って
-いるかどうかを絵の上で確かめられる。
+マップ形式の各要素にはそれぞれ視覚表現を割り当てているため、計画が制約を守って
+いるかを画面上で確認できる。
 
 | 表現 | 意味 |
 | --- | --- |
@@ -556,13 +568,13 @@ flowchart TD
 | 白い点 | ドローン1機。ターン間を移動する |
 | 数字入りの点 | 同じ場所に7機以上が重なっている |
 
-ゾーン名は描いていない。文字同士が重なって読めなくなるからで、代わりにマウスを
-乗せると情報が出る。ゾーンなら名前、役割、種類、収容数、座標、色。接続なら
-結んでいるゾーンと収容数。ドローンなら識別番号。
+ゾーン名は、ラベル同士の重なりを避けるためマップ上には表示しない。代わりに、
+マウスカーソルを重ねると詳細が表示される。ゾーンでは名前、役割、種類、収容数、
+座標、色を、接続では両端のゾーンと収容数を、ドローンでは識別番号を確認できる。
 
-同じ場所に2〜6機が居合わせたときは、中心のまわりに正多角形の頂点として並べる。
-7機以上になると1つの点にまとめ、機数を数字で書く。混み合ったstartが隣のゾーンまで
-はみ出さないようにするためである。移動中の機は接続の中点に置く。
+同じ場所に2〜6機が存在する場合は、中心の周囲に正多角形の頂点を描くように配置
+する。7機以上の場合は1つの点にまとめ、機数を数字で表示する。これにより、混雑した
+startの表示が隣のゾーンまではみ出すことを防ぐ。移動中の機体は接続の中点に置く。
 
 | 操作 | 動作 |
 | --- | --- |
@@ -572,31 +584,31 @@ flowchart TD
 | 速度ボタン | 1x、2x、4x、0.5xを順に切り替える |
 | スライダー | 任意のターンへ移動する |
 
-再生と一時停止、スライダー、1ターンずつの移動があるので、43ターンの計画でも
-無理なく追える。おかしいと思ったターンで止め、1つ戻し、関係するゾーンの
-ツールチップを読めばよい。
+再生と一時停止、スライダー、1ターン単位の移動を使うことで、43ターンの計画でも
+容易に確認できる。気になるターンで一時停止し、1ターン戻って、関係するゾーンの
+ツールチップを確認できる。
 
 ### Why Flet rather than tkinter
 
 **アニメーション**
 
-マーカーに`ft.Animation`を一度宣言しておけば、あとは新しい座標を渡すだけで、
-間のフレームはフレームワークが補間してくれる。tkinterで同じことをするなら、
-`after()`のループを自分で回して毎フレーム全機を描き直すことになる。
+マーカーに`ft.Animation`を一度設定すれば、あとは新しい座標を渡すだけで、途中の
+フレームはフレームワークが補間する。tkinterで同じ動きを実現するには、`after()`を
+使ったループを実装し、フレームごとに全機を描画し直す必要がある。
 
-**出来合いのUI部品**
+**標準のUIコンポーネント**
 
-スライダー、速度ボタン、ウィンドウの伸縮に追従するレイアウトが最初から
-揃っている。tkinterでは自分で組み立て、位置を計算し直す必要がある。
+スライダー、速度ボタン、ウィンドウの伸縮に追従するレイアウトが標準で用意されて
+いる。tkinterでは、これらを自分で構築し、配置を再計算する必要がある。
 
-tkinterの利点は依存を1つも増やさずに済むことだが、そこは`make install`が
-引き受けている。
+tkinterには追加の依存パッケージが不要という利点がある。一方、このプロジェクト
+では`make install`によって依存パッケージをまとめて導入できる。
 
 ## Performance
 
-課題が経路の質を測る物差しは、計算時間ではなくシミュレーションのターン数である。
-提供されたマップはすべて目標以内に収まり、任意課題のchallengerも参考記録を
-2ターン縮めている。
+課題では、経路の品質を計算時間ではなくシミュレーションのターン数で評価する。
+提供されたマップはすべて目標ターン数以内で完了し、任意課題のchallengerでも
+参考記録を2ターン上回る結果を達成している。
 
 | マップ | 機数 | 結果 | 目標 | 差 |
 | --- | ---: | ---: | ---: | ---: |
@@ -626,10 +638,10 @@ src/fly_in/
     └── gui/          # Fletの可視化（board/がマップを描く）
 ~~~
 
-テストは286件。マップの解析と不正な入力、blocked・restricted・priorityを含む
-経路探索、収容数の予約、あえての待機、ターミナル出力、そして可視化のターン
+286件のテストで、マップの解析と不正な入力、blocked・restricted・priorityを含む
+経路探索、収容数の予約、必要に応じた待機、ターミナル出力、可視化におけるターン
 ごとの状態・配置・操作を確認している。すべてのソースが`flake8`と
-`mypy --strict`を通る。
+`mypy --strict`を通過する。
 
 ## Resources
 
@@ -654,7 +666,7 @@ AIは次の部分で利用した。
 | `Makefile`、docstring、`README.md` | 内容の生成 |
 
 生成した内容はすべて、課題文、テスト、`flake8`、`mypy --strict`、提供された
-マップに照らして確認している。レビューが透明になるよう利用箇所を明示するが、
-提出したコードを理解し、説明し、保守する責任は作者にある。
+マップに照らして確認している。レビューの透明性を保つために利用箇所を明示して
+いるが、提出したコードを理解し、説明し、保守する責任は作者にある。
 
 </details>
