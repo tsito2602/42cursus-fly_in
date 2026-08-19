@@ -33,7 +33,7 @@ DASHED_TYPES = (ZoneType.RESTRICTED, ZoneType.BLOCKED)
 OUTLINE_WIDTH = 3.0
 DASH_PATTERN = (6.0, 4.0)
 
-LINK_HOVER_THICKNESS = 12.0
+CONNECTION_TOOLTIP_THICKNESS = 12.0  # how wide a connection line is to aim at
 
 ROLE_LABELS = {
     ZoneRole.START: "START",

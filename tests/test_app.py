@@ -32,7 +32,7 @@ from fly_in.rendering.gui.theme import (
 from fly_in.rendering.gui.timeline import SimulationTimeline
 from fly_in.rendering.gui.tooltips import zone_details
 from fly_in.rendering.gui.transform import ViewTransform
-from fly_in.rendering.gui.zone_hotspot import ZoneHotspot
+from fly_in.rendering.gui.tooltips import ZoneTooltip
 from fly_in.routing import RouteSchedule, Transit
 
 
@@ -628,53 +628,53 @@ def test_every_badge_carries_a_dark_outline() -> None:
         assert border.top.color == DRONE_OUTLINE
 
 
-def hotspots_of(board: Board) -> list[ZoneHotspot]:
-    """Return the hover area of every zone."""
+def tooltips_of(board: Board) -> list[ZoneTooltip]:
+    """Return the tooltip of every zone."""
 
     return [
         control
         for control in board.controls
-        if isinstance(control, ZoneHotspot)
+        if isinstance(control, ZoneTooltip)
     ]
 
 
-def test_every_zone_carries_a_hover_area() -> None:
+def test_every_zone_carries_a_tooltip() -> None:
     board, _, _ = make_board()
 
-    assert len(hotspots_of(board)) == len(make_map().zones)
+    assert len(tooltips_of(board)) == len(make_map().zones)
 
 
-def test_a_hover_area_shows_the_details_of_its_zone() -> None:
+def test_a_tooltip_shows_the_details_of_its_zone() -> None:
     board, _, _ = make_board()
     map = make_map()
-    tooltips = [hotspot.tooltip for hotspot in hotspots_of(board)]
+    details = [tooltip.tooltip for tooltip in tooltips_of(board)]
 
-    assert tooltips == [
+    assert details == [
         zone_details(zone) for zone in map.zones.values()
     ]
 
 
-def test_a_hover_area_covers_its_zone_circle() -> None:
+def test_a_tooltip_covers_its_zone_circle() -> None:
     board, _, _ = make_board()
     map = make_map()
     transform = make_transform()
 
-    for hotspot, zone in zip(hotspots_of(board), map.zones.values()):
+    for tooltip, zone in zip(tooltips_of(board), map.zones.values()):
         radius = drawn_radius(zone, transform.scale)
         x, y = transform.to_pixel(zone.x, zone.y)
 
-        assert hotspot.width == radius * 2.0
-        assert hotspot.left == x - radius
-        assert hotspot.top == y - radius
+        assert tooltip.width == radius * 2.0
+        assert tooltip.left == x - radius
+        assert tooltip.top == y - radius
 
 
-def test_a_hover_area_stays_under_the_drones() -> None:
+def test_a_tooltip_stays_under_the_drones() -> None:
     board, _, _ = make_board()
     controls = board.controls
-    hotspots = [
+    tooltips = [
         index
         for index, control in enumerate(controls)
-        if isinstance(control, ZoneHotspot)
+        if isinstance(control, ZoneTooltip)
     ]
     markers = [
         index
@@ -682,14 +682,14 @@ def test_a_hover_area_stays_under_the_drones() -> None:
         if isinstance(control, DroneMarker)
     ]
 
-    assert max(hotspots) < min(markers)
+    assert max(tooltips) < min(markers)
 
 
-def test_a_resize_moves_every_hover_area() -> None:
+def test_a_resize_moves_every_tooltip() -> None:
     board, _, _ = make_board()
-    before = [hotspot.left for hotspot in hotspots_of(board)]
+    before = [tooltip.left for tooltip in tooltips_of(board)]
 
     board.resize(600, 400)
 
-    assert [hotspot.left for hotspot in hotspots_of(board)] != before
-    assert len(hotspots_of(board)) == len(make_map().zones)
+    assert [tooltip.left for tooltip in tooltips_of(board)] != before
+    assert len(tooltips_of(board)) == len(make_map().zones)

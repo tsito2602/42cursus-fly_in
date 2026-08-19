@@ -1,4 +1,4 @@
-"""Test the hover area lying along a connection line."""
+"""Test the tooltip lying along a connection line."""
 
 import math
 
@@ -10,10 +10,12 @@ import pytest
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
 from fly_in.rendering.gui.board import Board
-from fly_in.rendering.gui.link_hotspot import LinkHotspot
-from fly_in.rendering.gui.theme import LINK_HOVER_THICKNESS
-from fly_in.rendering.gui.tooltips import connection_details
+from fly_in.rendering.gui.theme import CONNECTION_TOOLTIP_THICKNESS
 from fly_in.rendering.gui.timeline import SimulationTimeline
+from fly_in.rendering.gui.tooltips import (
+    ConnectionTooltip,
+    connection_details,
+)
 from fly_in.rendering.gui.transform import ViewTransform
 from fly_in.routing import RouteSchedule
 
@@ -69,53 +71,53 @@ def make_board() -> Board:
     return Board(map, SimulationTimeline(map, schedule))
 
 
-def make_hotspot() -> LinkHotspot:
-    return LinkHotspot(
+def make_tooltip() -> ConnectionTooltip:
+    return ConnectionTooltip(
         Connection(zone_a="start", zone_b="middle", capacity=3), START, END
     )
 
 
-def links_of(board: Board) -> list[LinkHotspot]:
-    """Return the hover area of every connection."""
+def tooltips_of(board: Board) -> list[ConnectionTooltip]:
+    """Return the tooltip of every connection."""
 
     return [
         control
         for control in board.controls
-        if isinstance(control, LinkHotspot)
+        if isinstance(control, ConnectionTooltip)
     ]
 
 
-def middle(hotspot: LinkHotspot) -> tuple[float, float]:
-    """Return the center of a hover area."""
+def middle(tooltip: ConnectionTooltip) -> tuple[float, float]:
+    """Return the center of a tooltip."""
 
     return (
-        float(hotspot.left or 0.0) + float(hotspot.width or 0.0) / 2.0,
-        float(hotspot.top or 0.0) + float(hotspot.height or 0.0) / 2.0,
+        float(tooltip.left or 0.0) + float(tooltip.width or 0.0) / 2.0,
+        float(tooltip.top or 0.0) + float(tooltip.height or 0.0) / 2.0,
     )
 
 
-def test_a_hover_area_is_as_long_as_its_line() -> None:
-    assert make_hotspot().width == pytest.approx(
+def test_a_tooltip_is_as_long_as_its_line() -> None:
+    assert make_tooltip().width == pytest.approx(
         math.hypot(END[0] - START[0], END[1] - START[1])
     )
 
 
-def test_a_hover_area_is_thick_enough_to_aim_at() -> None:
-    hotspot = make_hotspot()
+def test_a_tooltip_is_thick_enough_to_aim_at() -> None:
+    tooltip = make_tooltip()
 
-    assert hotspot.height == LINK_HOVER_THICKNESS
-    assert LINK_HOVER_THICKNESS > 1.0
+    assert tooltip.height == CONNECTION_TOOLTIP_THICKNESS
+    assert CONNECTION_TOOLTIP_THICKNESS > 1.0
 
 
-def test_a_hover_area_sits_on_the_middle_of_its_line() -> None:
-    center = middle(make_hotspot())
+def test_a_tooltip_sits_on_the_middle_of_its_line() -> None:
+    center = middle(make_tooltip())
 
     assert center[0] == pytest.approx((START[0] + END[0]) / 2.0)
     assert center[1] == pytest.approx((START[1] + END[1]) / 2.0)
 
 
-def test_a_hover_area_turns_along_its_line() -> None:
-    rotate = make_hotspot().rotate
+def test_a_tooltip_turns_along_its_line() -> None:
+    rotate = make_tooltip().rotate
 
     assert isinstance(rotate, ft.Rotate)
     assert rotate.angle == pytest.approx(
@@ -124,28 +126,28 @@ def test_a_hover_area_turns_along_its_line() -> None:
 
 
 def test_a_flat_line_is_not_turned() -> None:
-    hotspot = LinkHotspot(
+    tooltip = ConnectionTooltip(
         Connection(zone_a="start", zone_b="middle"), (10.0, 20.0), (90.0, 20.0)
     )
-    rotate = hotspot.rotate
+    rotate = tooltip.rotate
 
     assert isinstance(rotate, ft.Rotate)
     assert rotate.angle == pytest.approx(0.0)
 
 
-def test_a_hover_area_shows_the_details_of_its_connection() -> None:
+def test_a_tooltip_shows_the_details_of_its_connection() -> None:
     connection = Connection(zone_a="start", zone_b="middle", capacity=3)
 
-    assert make_hotspot().tooltip == connection_details(connection)
+    assert make_tooltip().tooltip == connection_details(connection)
 
 
-def test_every_connection_carries_a_hover_area() -> None:
+def test_every_connection_carries_a_tooltip() -> None:
     board = make_board()
 
-    assert len(links_of(board)) == len(make_map().connections)
+    assert len(tooltips_of(board)) == len(make_map().connections)
 
 
-def test_a_hover_area_joins_the_two_zones_it_links() -> None:
+def test_a_tooltip_joins_the_two_zones_it_links() -> None:
     board = make_board()
     map = make_map()
     transform = ViewTransform(
@@ -153,21 +155,21 @@ def test_a_hover_area_joins_the_two_zones_it_links() -> None:
     )
     start = transform.to_pixel(0, 0)
     end = transform.to_pixel(2, 1)
-    center = middle(links_of(board)[0])
+    center = middle(tooltips_of(board)[0])
 
     assert center[0] == pytest.approx((start[0] + end[0]) / 2.0)
     assert center[1] == pytest.approx((start[1] + end[1]) / 2.0)
 
 
-def test_a_hover_area_stays_under_the_zones() -> None:
+def test_a_tooltip_stays_under_the_zones() -> None:
     kinds = [type(control).__name__ for control in make_board().controls]
 
-    assert kinds.index("LinkHotspot") < kinds.index("ZoneHotspot")
+    assert kinds.index("ConnectionTooltip") < kinds.index("ZoneTooltip")
 
 
-def test_a_resize_moves_every_hover_area() -> None:
+def test_a_resize_moves_every_tooltip() -> None:
     board = make_board()
-    before = middle(links_of(board)[0])
+    before = middle(tooltips_of(board)[0])
     board.resize(600, 400)
 
-    assert middle(links_of(board)[0]) != before
+    assert middle(tooltips_of(board)[0]) != before

@@ -6,7 +6,6 @@ from .crowd_badge import CrowdBadge
 from .drone_layout import DroneLayout
 from .drone_marker import DroneMarker
 from .geometry import Point
-from .link_hotspot import LinkHotspot
 from .network import NetworkCanvas
 from .rainbow_zone import RainbowZone
 from .theme import (
@@ -23,8 +22,8 @@ from .theme import (
     is_rainbow,
 )
 from .timeline import SimulationTimeline
+from .tooltips import ConnectionTooltip, ZoneTooltip
 from .transform import ViewTransform
-from .zone_hotspot import ZoneHotspot
 
 
 class Board(ft.Stack):
@@ -85,8 +84,8 @@ class Board(ft.Stack):
         self.controls = [
             NetworkCanvas(self._map, transform, self._width, self._height),
             *self._make_rainbows(transform),
-            *self._make_link_hotspots(transform),
-            *self._make_zone_hotspots(transform),
+            *self._make_connection_tooltips(transform),
+            *self._make_zone_tooltips(transform),
             *self._markers.values(),
             *self._badges.values(),
         ]
@@ -107,34 +106,34 @@ class Board(ft.Stack):
             if is_rainbow(zone)
         ]
 
-    def _make_link_hotspots(
+    def _make_connection_tooltips(
         self, transform: ViewTransform
-    ) -> list[LinkHotspot]:
-        """Return the hover area lying along every connection line."""
+    ) -> list[ConnectionTooltip]:
+        """Return the tooltip lying along every connection line."""
 
-        hotspots: list[LinkHotspot] = []
+        tooltips: list[ConnectionTooltip] = []
 
         for connection in self._map.connections:
             zone_a = self._map.zones[connection.zone_a]
             zone_b = self._map.zones[connection.zone_b]
 
-            hotspots.append(
-                LinkHotspot(
+            tooltips.append(
+                ConnectionTooltip(
                     connection,
                     transform.to_pixel(zone_a.x, zone_a.y),
                     transform.to_pixel(zone_b.x, zone_b.y),
                 )
             )
 
-        return hotspots
+        return tooltips
 
-    def _make_zone_hotspots(
+    def _make_zone_tooltips(
         self, transform: ViewTransform
-    ) -> list[ZoneHotspot]:
-        """Return the hover area covering every zone circle."""
+    ) -> list[ZoneTooltip]:
+        """Return the tooltip covering every zone circle."""
 
         return [
-            ZoneHotspot(
+            ZoneTooltip(
                 zone,
                 drawn_radius(zone, transform.scale),
                 transform.to_pixel(zone.x, zone.y),
