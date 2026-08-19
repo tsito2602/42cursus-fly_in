@@ -10,8 +10,8 @@ import flet as ft
 
 from fly_in.models import Connection, Zone, ZoneRole
 
-from .geometry import Point, top_left
 from .theme import CONNECTION_TOOLTIP_THICKNESS
+from .transform import Point, top_left
 
 
 class ZoneTooltip(ft.Container):

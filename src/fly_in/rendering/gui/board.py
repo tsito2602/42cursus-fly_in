@@ -5,7 +5,6 @@ from fly_in.models import Map
 from .crowd_badge import CrowdBadge
 from .drone_layout import DroneLayout
 from .drone_marker import DroneMarker
-from .geometry import Point
 from .network import NetworkCanvas
 from .rainbow_zone import RainbowZone
 from .theme import (
@@ -23,7 +22,7 @@ from .theme import (
 )
 from .timeline import SimulationTimeline
 from .tooltips import ConnectionTooltip, ZoneTooltip
-from .transform import ViewTransform
+from .transform import Point, ViewTransform
 
 
 class Board(ft.Stack):

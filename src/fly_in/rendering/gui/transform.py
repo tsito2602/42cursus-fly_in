@@ -1,7 +1,16 @@
+"""Place the shapes of the map on the canvas.
+
+Map coordinates are small whole numbers with the y axis pointing up,
+while Flet draws in pixels from the top-left corner going down.
+"""
+
 from collections.abc import Iterable
 import math
+from typing import TypeAlias
 
 from fly_in.models import Zone
+
+Point: TypeAlias = tuple[float, float]
 
 MARGIN = 60.0
 MAX_SCALE = 120.0
@@ -32,7 +41,7 @@ class ViewTransform:
 
         return self._scale
 
-    def to_pixel(self, x: int, y: int) -> tuple[float, float]:
+    def to_pixel(self, x: int, y: int) -> Point:
         """Convert map coordinates to pixels, flipping the y axis."""
 
         return (
@@ -48,3 +57,11 @@ class ViewTransform:
             return math.inf
 
         return (available - 2 * MARGIN) / span
+
+
+def top_left(point: Point, radius: float) -> Point:
+    """Return the top-left corner of a circle centered on a point."""
+
+    x, y = point
+
+    return (x - radius, y - radius)

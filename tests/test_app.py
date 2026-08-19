@@ -14,7 +14,6 @@ from fly_in.rendering.gui.board import Board
 from fly_in.rendering.gui.crowd_badge import CrowdBadge
 from fly_in.rendering.gui.drone_layout import DroneLayout
 from fly_in.rendering.gui.drone_marker import DroneMarker
-from fly_in.rendering.gui.geometry import Point
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -31,7 +30,7 @@ from fly_in.rendering.gui.theme import (
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
 from fly_in.rendering.gui.tooltips import zone_details
-from fly_in.rendering.gui.transform import ViewTransform
+from fly_in.rendering.gui.transform import Point, ViewTransform
 from fly_in.rendering.gui.tooltips import ZoneTooltip
 from fly_in.routing import RouteSchedule, Transit
 
