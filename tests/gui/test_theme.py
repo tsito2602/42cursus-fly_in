@@ -4,21 +4,21 @@ import pytest
 
 from fly_in.models import Zone, ZoneRole, ZoneType
 from fly_in.rendering.gui.theme import (
-    RAINBOW,
-    RAINBOW_COLORS,
     DRONE,
     DRONE_OUTLINE,
+    RAINBOW,
+    RAINBOW_COLORS,
     RGB_COLORS,
     SPEEDS,
     TURN_SECONDS,
+    TYPE_COLORS,
     animation_ms,
     drawn_radius,
     is_rainbow,
     outline_width,
-    TYPE_COLORS,
     to_hex,
-    zone_radius,
     zone_fill,
+    zone_radius,
 )
 
 

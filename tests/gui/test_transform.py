@@ -4,7 +4,7 @@ import pytest
 
 from fly_in.models import Zone, ZoneRole
 from fly_in.parsing import MapParser
-from fly_in.rendering.gui.transform import (
+from fly_in.rendering.gui.board.transform import (
     MARGIN,
     MAX_SCALE,
     ViewTransform,

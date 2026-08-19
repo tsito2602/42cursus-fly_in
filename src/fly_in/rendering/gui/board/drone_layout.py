@@ -4,8 +4,8 @@ import math
 from fly_in.models import Map
 from fly_in.routing import Transit
 
-from .theme import CROWD_THRESHOLD, drone_radius
-from .timeline import SimulationTimeline, TurnState
+from ..theme import CROWD_THRESHOLD, drone_radius
+from ..timeline import SimulationTimeline, TurnState
 from .transform import Point, ViewTransform
 
 

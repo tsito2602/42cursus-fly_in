@@ -2,7 +2,7 @@ import flet as ft
 
 from fly_in.models import Zone
 
-from .theme import OUTLINE_WIDTH, RAINBOW_COLORS
+from ..theme import OUTLINE_WIDTH, RAINBOW_COLORS
 from .transform import Point, top_left
 
 

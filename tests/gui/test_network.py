@@ -6,7 +6,8 @@ import pytest
 
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
-from fly_in.rendering.gui.network import NetworkCanvas
+from fly_in.rendering.gui.board.network import NetworkCanvas
+from fly_in.rendering.gui.board.transform import ViewTransform
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -14,7 +15,6 @@ from fly_in.rendering.gui.theme import (
     ROLE_COLORS,
     zone_fill,
 )
-from fly_in.rendering.gui.transform import ViewTransform
 
 WIDTH = CANVAS_WIDTH
 HEIGHT = CANVAS_HEIGHT

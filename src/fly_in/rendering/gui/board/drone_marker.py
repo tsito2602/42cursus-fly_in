@@ -1,6 +1,6 @@
 import flet as ft
 
-from .theme import (
+from ..theme import (
     DRONE,
     DRONE_OUTLINE,
     TURN_SECONDS,

@@ -11,17 +11,19 @@ from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
 from fly_in.rendering.gui.app import FlyInApp
 from fly_in.rendering.gui.board import Board
-from fly_in.rendering.gui.crowd_badge import CrowdBadge
-from fly_in.rendering.gui.drone_layout import DroneLayout
-from fly_in.rendering.gui.drone_marker import DroneMarker
+from fly_in.rendering.gui.board.crowd_badge import CrowdBadge
+from fly_in.rendering.gui.board.drone_layout import DroneLayout
+from fly_in.rendering.gui.board.drone_marker import DroneMarker
+from fly_in.rendering.gui.board.tooltips import ZoneTooltip, zone_details
+from fly_in.rendering.gui.board.transform import Point, ViewTransform
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     CHROME_HEIGHT,
     CROWD_THRESHOLD,
+    DRONE_OUTLINE,
     MIN_CANVAS_HEIGHT,
     MIN_CANVAS_WIDTH,
-    DRONE_OUTLINE,
     SPEEDS,
     animation_ms,
     drawn_radius,
@@ -29,9 +31,6 @@ from fly_in.rendering.gui.theme import (
     outline_width,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
-from fly_in.rendering.gui.tooltips import zone_details
-from fly_in.rendering.gui.transform import Point, ViewTransform
-from fly_in.rendering.gui.tooltips import ZoneTooltip
 from fly_in.routing import RouteSchedule, Transit
 
 

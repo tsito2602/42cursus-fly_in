@@ -10,7 +10,7 @@ import flet as ft
 
 from fly_in.models import Connection, Zone, ZoneRole
 
-from .theme import CONNECTION_TOOLTIP_THICKNESS
+from ..theme import CONNECTION_TOOLTIP_THICKNESS
 from .transform import Point, top_left
 
 

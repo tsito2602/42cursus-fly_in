@@ -1,7 +1,10 @@
 """Test the panels shown while the pointer rests on a shape."""
 
 from fly_in.models import Connection, Zone, ZoneRole, ZoneType
-from fly_in.rendering.gui.tooltips import connection_details, zone_details
+from fly_in.rendering.gui.board.tooltips import (
+    connection_details,
+    zone_details,
+)
 
 
 def make_zone(

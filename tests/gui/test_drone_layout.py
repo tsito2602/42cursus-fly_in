@@ -8,14 +8,14 @@ import pytest
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
 from fly_in.parsing import MapParser
-from fly_in.rendering.gui.drone_layout import DroneLayout
+from fly_in.rendering.gui.board.drone_layout import DroneLayout
+from fly_in.rendering.gui.board.transform import Point, ViewTransform
 from fly_in.rendering.gui.theme import (
     CROWD_THRESHOLD,
     RING_SLOTS,
     drone_radius,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
-from fly_in.rendering.gui.transform import Point, ViewTransform
 from fly_in.routing import RoutePlanner, Route, RouteSchedule, Transit
 
 WIDTH = 1200

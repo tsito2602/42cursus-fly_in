@@ -2,12 +2,7 @@ import flet as ft
 
 from fly_in.models import Map
 
-from .crowd_badge import CrowdBadge
-from .drone_layout import DroneLayout
-from .drone_marker import DroneMarker
-from .network import NetworkCanvas
-from .rainbow_zone import RainbowZone
-from .theme import (
+from ..theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     MIN_CANVAS_HEIGHT,
@@ -20,7 +15,12 @@ from .theme import (
     drone_radius,
     is_rainbow,
 )
-from .timeline import SimulationTimeline
+from ..timeline import SimulationTimeline
+from .crowd_badge import CrowdBadge
+from .drone_layout import DroneLayout
+from .drone_marker import DroneMarker
+from .network import NetworkCanvas
+from .rainbow_zone import RainbowZone
 from .tooltips import ConnectionTooltip, ZoneTooltip
 from .transform import Point, ViewTransform
 

@@ -4,7 +4,7 @@ import flet as ft
 import flet.canvas as cv
 
 from fly_in.models import ZoneType
-from fly_in.rendering.gui.legend import ZONE_TYPES, Legend
+from fly_in.rendering.gui.legend import Legend, ZONE_TYPES
 from fly_in.rendering.gui.theme import (
     DASH_PATTERN,
     OUTLINE_WIDTH,

@@ -1,6 +1,6 @@
 import flet as ft
 
-from .theme import BACKGROUND, DRONE, DRONE_OUTLINE, outline_width
+from ..theme import BACKGROUND, DRONE, DRONE_OUTLINE, outline_width
 from .transform import Point, top_left
 
 

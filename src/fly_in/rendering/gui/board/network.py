@@ -3,7 +3,7 @@ import flet.canvas as cv
 
 from fly_in.models import Connection, Map, Zone, ZoneRole, ZoneType
 
-from .theme import (
+from ..theme import (
     DASH_PATTERN,
     LINE,
     OUTLINE_WIDTH,
