@@ -17,15 +17,16 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> •
-  <a href="#map-format">Map format</a> •
+  <a href="#description">Description</a> •
+  <a href="#instructions">Instructions</a> •
+  <a href="#example">Example</a> •
   <a href="#algorithm-space-time-a">Algorithm</a> •
   <a href="#visualizer">Visualizer</a> •
   <a href="#performance">Performance</a> •
   <a href="#日本語版">日本語版</a>
 </p>
 
-## Overview
+## Description
 
 Fly-in reads a map — a graph of zones joined by bidirectional connections —
 and moves every drone from the start hub to the goal in as few turns as
@@ -35,7 +36,12 @@ Zones and connections hold only a limited number of drones at a time, so a
 plan cannot stop at *which way* a drone goes. It must also decide *when* the
 drone may be there. That is why the planner searches over space **and** time.
 
-## Quick start
+The goal is to land every drone on the end hub in the fewest simulation turns,
+handling distribution across multiple paths, strategic waiting, and deadlock
+avoidance. The graph logic is written from scratch — no `networkx`, `graphlib`
+or similar — in fully object-oriented, `mypy --strict` clean Python.
+
+## Instructions
 
 Requirements: Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 
@@ -76,6 +82,7 @@ brackets. Lines starting with `#` are comments, and zone names cannot contain
 spaces or dashes.
 
 ~~~text
+# maps/easy/01_linear_path.txt
 nb_drones: 2
 
 start_hub: start 0 0 [color=green]
@@ -102,7 +109,17 @@ connection: waypoint2-goal
 | `restricted` | 2 turns | One turn in transit, then arrival |
 | `blocked` | — | Never entered |
 
-The output prints one line per turn, listing only the drones that moved:
+## Example
+
+Running the two-drone map above:
+
+~~~sh
+uv run fly-in maps/easy/01_linear_path.txt
+~~~
+
+Each output line is one simulation turn, listing only the drones that moved.
+Waiting and delivered drones are left out, and a drone crossing into a
+`restricted` zone shows both ends of its connection:
 
 ~~~text
 D1-waypoint1
@@ -110,6 +127,8 @@ D1-waypoint2 D2-waypoint1
 D1-goal D2-waypoint2
 D2-goal
 ~~~
+
+Both drones reach the goal in 4 turns.
 
 ## Algorithm: Space-Time A*
 
@@ -193,9 +212,20 @@ scores simulation turns, not planner runtime.
 
 ## Visualizer
 
-`--gui` opens a Flet window replaying the same schedule. Zones keep the
-coordinates from the map file, rescaled to fit the canvas without distorting
-the aspect ratio. The window can be resized freely and the map refits itself.
+The terminal output stays plain text, because the subject fixes its format
+exactly. The visual feedback therefore lives in the GUI: `--gui` opens a Flet
+window replaying the same schedule.
+
+Turn-by-turn text answers *what* happened; the window answers *why*. Watching
+the drones move makes the plan legible at a glance — where the fleet splits
+across parallel paths, which corridor is the bottleneck everyone queues for,
+and why a drone chose to wait rather than detour. Zones keep the coordinates
+from the map file, rescaled to fit the canvas without distorting the aspect
+ratio, so a map keeps the shape its author drew. The window can be resized
+freely and the map refits itself.
+
+Every rule of the map format has its own visual channel, so the constraints
+the planner obeys can be checked against the picture:
 
 | Channel | Meaning |
 | --- | --- |
@@ -227,23 +257,42 @@ transit sits at the midpoint of its connection.
 | Speed button | Cycle 1x, 2x, 4x, 0.5x |
 | Slider | Jump to any turn |
 
+Playback, the slider and the single-step keys make even a 43-turn schedule
+reviewable: pause on the turn that looks wrong, step back one turn, and read
+the tooltips of the zones involved.
+
+### Why Flet rather than tkinter
+
+**Animation.** A marker declares `ft.Animation` once and is then simply given
+a new position; the framework interpolates the frames. In tkinter the same
+effect means a hand-written `after()` loop redrawing every drone on every
+frame.
+
+**Ready-made widgets.** The slider, the speed button and a layout that refits
+itself on resize come with the toolkit, instead of being built and
+repositioned by hand.
+
+tkinter's advantage is needing no dependency at all, but `make install`
+already covers that.
+
 ## Performance
 
 The subject scores route quality by simulation turns, not CPU time. Every
-provided map beats its target, including the optional challenger reference.
+provided map meets or beats its target, and the optional challenger
+reference is beaten by two turns.
 
-| Map | Result | Target | Margin |
-| --- | ---: | ---: | ---: |
-| Easy — Linear path | 4 | ≤ 6 | 2 |
-| Easy — Simple fork | 4 | ≤ 8 | 4 |
-| Easy — Basic capacity | 4 | ≤ 6 | 2 |
-| Medium — Dead end trap | 8 | ≤ 12 | 4 |
-| Medium — Circular loop | 15 | ≤ 15 | 0 |
-| Medium — Priority puzzle | 7 | ≤ 12 | 5 |
-| Hard — Maze nightmare | 13 | ≤ 30 | 17 |
-| Hard — Capacity hell | 16 | ≤ 35 | 19 |
-| Hard — Ultimate challenge | 26 | ≤ 45 | 19 |
-| Challenger — The Impossible Dream | **43** | Reference: 45 | **2** |
+| Map | Drones | Turns | Target | Margin |
+| --- | ---: | ---: | ---: | ---: |
+| Easy — Linear path | 2 | 4 | ≤ 6 | 2 |
+| Easy — Simple fork | 4 | 4 | ≤ 8 | 4 |
+| Easy — Basic capacity | 4 | 4 | ≤ 6 | 2 |
+| Medium — Dead end trap | 5 | 8 | ≤ 12 | 4 |
+| Medium — Circular loop | 6 | 15 | ≤ 15 | 0 |
+| Medium — Priority puzzle | 5 | 7 | ≤ 12 | 5 |
+| Hard — Maze nightmare | 8 | 13 | ≤ 30 | 17 |
+| Hard — Capacity hell | 12 | 16 | ≤ 35 | 19 |
+| Hard — Ultimate challenge | 15 | 26 | ≤ 45 | 19 |
+| Challenger — The Impossible Dream | 25 | **43** | Reference: 45 | **2** |
 
 ## Project structure
 
@@ -276,13 +325,21 @@ and the visualizer's per-turn state, layout and controls. All sources pass
 
 ### AI usage
 
-AI was used to clarify the subject, discuss planning and scheduling
-trade-offs, review the implementation, propose edge cases, and generate
-tests, Makefile content, docstrings and documentation. The results were
-checked against the subject with the test suite, `flake8`, `mypy --strict`
-and the provided maps. The disclosure is explicit so the work can be reviewed
-transparently; the author remains responsible for understanding, explaining
-and maintaining all submitted code.
+AI was used throughout the project, on these tasks and these parts:
+
+| Part | How AI was used |
+| --- | --- |
+| Reading the subject | Clarifying the requirements and the scoring rules |
+| `routing/` | Discussing the space-time search and the reservation strategy, then reviewing the implementation |
+| `parsing/`, `models/` | Proposing malformed inputs and edge cases the parser must reject |
+| `rendering/gui/` | Reviewing and refactoring the Flet visualizer for readability |
+| `tests/` | Generating test cases from the edge cases discussed above |
+| `Makefile`, docstrings, `README.md` | Generating the content |
+
+Everything generated was checked against the subject with the test suite,
+`flake8`, `mypy --strict` and the provided maps. The disclosure is explicit so
+the work can be reviewed transparently; the author remains responsible for
+understanding, explaining and maintaining all submitted code.
 
 ---
 
@@ -299,6 +356,11 @@ startからgoalまで最小のターン数で移動させる経路計画シミ�
 ゾーンにも接続にも同時に入れる機数の上限がある。そのため「どの道を通るか」
 だけでは計画が決まらず、「いつそこにいてよいか」まで決める必要がある。
 だから探索の対象は空間だけでなく、時間も含む。
+
+目標は、全機をできるだけ少ないターン数でgoalに到着させることで、複数経路への
+振り分け、意図的な待機、デッドロックの回避を扱う。グラフの処理は`networkx`や
+`graphlib`などを使わず自前で実装し、全体をオブジェクト指向で、
+`mypy --strict`が通る形で書いている。
 
 ## 使い方
 
@@ -339,6 +401,7 @@ make clean        # Pythonのキャッシュを削除する
 で、ゾーン名に空白とハイフンは使えない。
 
 ~~~text
+# maps/easy/01_linear_path.txt
 nb_drones: 2
 
 start_hub: start 0 0 [color=green]
@@ -365,7 +428,17 @@ connection: waypoint2-goal
 | `restricted` | 2ターン | 1ターン移動してから到着する |
 | `blocked` | — | 進入できない |
 
-出力は1行が1ターンにあたり、そのターンに動いたドローンだけを並べる。
+## 実行例
+
+上のマップを実行する。
+
+~~~sh
+uv run fly-in maps/easy/01_linear_path.txt
+~~~
+
+出力は1行が1ターンにあたり、そのターンに動いたドローンだけを並べる。待機中と
+到着済みの機は出さない。`restricted`ゾーンへ移動中の機は、接続の両端を
+ハイフンでつないで表示する。
 
 ~~~text
 D1-waypoint1
@@ -373,6 +446,8 @@ D1-waypoint2 D2-waypoint1
 D1-goal D2-waypoint2
 D2-goal
 ~~~
+
+2機とも4ターンでgoalに着く。
 
 ## アルゴリズム: Space-Time A*
 
@@ -455,10 +530,20 @@ flowchart TD
 
 ## 可視化
 
-`--gui`を付けるとFletのウィンドウが開き、同じ結果を再生する。ゾーンは
-マップファイルの座標のまま、縦横比を保ってキャンバスに収まるよう拡大縮小
-して配置する。ウィンドウの大きさは自由に変えられ、マップは新しい大きさに
-合わせて描き直される。
+ターミナル出力は課題が形式を厳密に定めているため、装飾のないテキストのままに
+している。視覚的な情報はGUIが受け持つ。`--gui`を付けるとFletのウィンドウが
+開き、同じ結果を再生する。
+
+ターンごとの文字列が示すのは「何が起きたか」で、ウィンドウが示すのは
+「なぜそうなったか」である。動きを眺めれば、どこで機体が複数の経路に
+分かれたのか、どの通路が全機の待ち行列になっているのか、なぜ迂回せずに
+待つほうを選んだのかが一目で分かる。ゾーンはマップファイルの座標のまま、
+縦横比を保って配置するので、マップは作者が描いた形のまま表示される。
+ウィンドウの大きさは自由に変えられ、マップは新しい大きさに合わせて
+描き直される。
+
+マップの書式の要素にはそれぞれ見た目の役割を割り当ててあるので、計画が守って
+いる制約を絵の上で確かめられる。
 
 | 表現 | 意味 |
 | --- | --- |
@@ -489,24 +574,41 @@ flowchart TD
 | 速度ボタン | 1x、2x、4x、0.5xを順に切り替える |
 | スライダー | 任意のターンへ移動する |
 
-## 実行結果
+再生、スライダー、1ターンずつの移動があるので、43ターンの計画でも追える。
+おかしく見えるターンで止め、1ターン戻し、関係するゾーンのツールチップを
+読めばよい。
+
+### tkinterではなくFletを選んだ理由
+
+**アニメーション。** マーカーは`ft.Animation`を一度宣言しておけば、あとは
+新しい座標を渡すだけでよく、間のフレームはフレームワークが補間する。
+tkinterで同じことをするには、`after()`のループを自分で回して毎フレーム
+全機を描き直すことになる。
+
+**既製のUI部品。** スライダー、速度ボタン、リサイズに追従するレイアウトが
+最初から用意されている。tkinterでは自分で組み立て、配置し直す必要がある。
+
+tkinterの利点は依存を一切増やさずに済むことだが、それは`make install`が
+すでに引き受けている。
+
+## 性能
 
 課題は、計算時間ではなくシミュレーションのターン数で経路の質を評価する。
-提供されたマップはすべて目標を下回り、任意課題のchallengerの参考記録も
-上回っている。
+提供されたマップはすべて目標以下に収まり、任意課題のchallengerの参考記録も
+2ターン上回っている。
 
-| マップ | 結果 | 目標 | 差 |
-| --- | ---: | ---: | ---: |
-| Easy — Linear path | 4 | 6以下 | 2 |
-| Easy — Simple fork | 4 | 8以下 | 4 |
-| Easy — Basic capacity | 4 | 6以下 | 2 |
-| Medium — Dead end trap | 8 | 12以下 | 4 |
-| Medium — Circular loop | 15 | 15以下 | 0 |
-| Medium — Priority puzzle | 7 | 12以下 | 5 |
-| Hard — Maze nightmare | 13 | 30以下 | 17 |
-| Hard — Capacity hell | 16 | 35以下 | 19 |
-| Hard — Ultimate challenge | 26 | 45以下 | 19 |
-| Challenger — The Impossible Dream | **43** | 参考記録45 | **2** |
+| マップ | 機数 | 結果 | 目標 | 差 |
+| --- | ---: | ---: | ---: | ---: |
+| Easy — Linear path | 2 | 4 | 6以下 | 2 |
+| Easy — Simple fork | 4 | 4 | 8以下 | 4 |
+| Easy — Basic capacity | 4 | 4 | 6以下 | 2 |
+| Medium — Dead end trap | 5 | 8 | 12以下 | 4 |
+| Medium — Circular loop | 6 | 15 | 15以下 | 0 |
+| Medium — Priority puzzle | 5 | 7 | 12以下 | 5 |
+| Hard — Maze nightmare | 8 | 13 | 30以下 | 17 |
+| Hard — Capacity hell | 12 | 16 | 35以下 | 19 |
+| Hard — Ultimate challenge | 15 | 26 | 45以下 | 19 |
+| Challenger — The Impossible Dream | 25 | **43** | 参考記録45 | **2** |
 
 ## ディレクトリ構成
 
@@ -539,9 +641,18 @@ src/fly_in/
 
 ### AIの利用について
 
-AIは、課題要件の確認、経路探索とスケジューリングの方針の検討、実装の
-レビュー、境界条件の洗い出し、テスト・Makefile・docstring・ドキュメントの
-生成に利用した。生成物は課題文、テスト、`flake8`、`mypy --strict`、提供
+AIはプロジェクト全体で、次のタスクと部分に利用した。
+
+| 部分 | 利用のしかた |
+| --- | --- |
+| 課題文の読解 | 要件と採点基準の確認 |
+| `routing/` | 空間と時間の探索、予約方式の検討と、実装のレビュー |
+| `parsing/`、`models/` | パーサーが弾くべき不正な入力と境界条件の洗い出し |
+| `rendering/gui/` | Fletの可視化のレビューと、読みやすさのためのリファクタリング |
+| `tests/` | 上で洗い出した境界条件からのテスト生成 |
+| `Makefile`、docstring、`README.md` | 内容の生成 |
+
+生成したものはすべて、課題文、テスト、`flake8`、`mypy --strict`、提供された
 マップで確認している。透明にレビューできるよう利用を明示するが、提出した
 コードを理解し、説明し、保守する責任は作者にある。
 
