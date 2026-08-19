@@ -330,6 +330,7 @@ All source files pass `flake8` and `mypy --strict`.
 - [Pydantic](https://pydantic.dev/docs/validation/latest/get-started/)
 - [A* — Wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
+- [Flet](https://flet.dev/docs)
 
 ### AI usage
 
@@ -651,6 +652,7 @@ src/fly_in/
 - [Pydantic](https://pydantic.dev/docs/validation/latest/get-started/)
 - [A* - Wikipedia](https://ja.wikipedia.org/wiki/A*)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
+- [Flet](https://flet.dev/docs)
 
 ### AI usage
 
