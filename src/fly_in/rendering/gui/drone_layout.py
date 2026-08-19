@@ -1,23 +1,13 @@
 from collections.abc import Iterator
-from typing import TypeAlias
 import math
 
 from fly_in.models import Map
 from fly_in.routing import Transit
 
+from .geometry import Point
 from .theme import CROWD_THRESHOLD, drone_radius
 from .timeline import SimulationTimeline, TurnState
-from .view_transform import ViewTransform
-
-Point: TypeAlias = tuple[float, float]
-
-
-def top_left(point: Point, radius: float) -> Point:
-    """Return the top-left corner of a circle centered on a point."""
-
-    x, y = point
-
-    return (x - radius, y - radius)
+from .transform import ViewTransform
 
 
 class DroneLayout:

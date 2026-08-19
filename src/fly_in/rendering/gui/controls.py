@@ -1,6 +1,6 @@
-import flet as ft
-
 from typing import Callable
+
+import flet as ft
 
 from .theme import LABEL
 
@@ -19,14 +19,11 @@ class ControlBar(ft.Row):
         self._last_turn = last_turn
         self._on_step = on_step
         self._on_seek = on_seek
-        self._play = ft.IconButton(
-            icon=ft.Icons.PLAY_ARROW,
-            icon_color=LABEL,
-            tooltip="Play",
-            on_click=on_toggle,
-        )
+        self._play = self._button(ft.Icons.PLAY_ARROW, "Play", on_toggle)
         self._speed = ft.TextButton(
-            content="1x", tooltip="Speed", on_click=on_speed,
+            content="1x",
+            tooltip="Speed",
+            on_click=on_speed,
             style=ft.ButtonStyle(
                 color=LABEL, mouse_cursor=ft.MouseCursor.CLICK
             ),
@@ -42,35 +39,17 @@ class ControlBar(ft.Row):
 
         super().__init__(
             controls=[
-                ft.IconButton(
-                    icon=ft.Icons.SKIP_PREVIOUS,
-                    tooltip="First turn",
-                    icon_color=LABEL,
-                    on_click=self._first,
-                    mouse_cursor=ft.MouseCursor.CLICK
+                self._button(
+                    ft.Icons.SKIP_PREVIOUS, "First turn", self._first
                 ),
-                ft.IconButton(
-                    icon=ft.Icons.CHEVRON_LEFT,
-                    tooltip="Previous turn",
-                    icon_color=LABEL,
-                    on_click=self._previous,
-                    mouse_cursor=ft.MouseCursor.CLICK
+                self._button(
+                    ft.Icons.CHEVRON_LEFT, "Previous turn", self._previous
                 ),
                 self._play,
-                ft.IconButton(
-                    icon=ft.Icons.CHEVRON_RIGHT,
-                    tooltip="Next turn",
-                    icon_color=LABEL,
-                    on_click=self._next,
-                    mouse_cursor=ft.MouseCursor.CLICK
+                self._button(
+                    ft.Icons.CHEVRON_RIGHT, "Next turn", self._next
                 ),
-                ft.IconButton(
-                    icon=ft.Icons.SKIP_NEXT,
-                    tooltip="Last turn",
-                    icon_color=LABEL,
-                    on_click=self._last,
-                    mouse_cursor=ft.MouseCursor.CLICK
-                ),
+                self._button(ft.Icons.SKIP_NEXT, "Last turn", self._last),
                 self._speed,
                 self._slider,
             ],
@@ -97,6 +76,20 @@ class ControlBar(ft.Row):
 
         self._speed.content = f"{speed:g}x"
         self._speed.update()
+
+    @staticmethod
+    def _button(
+        icon: ft.IconData, tooltip: str, on_click: Callable[[], None]
+    ) -> ft.IconButton:
+        """Return one of the buttons moving through the turns."""
+
+        return ft.IconButton(
+            icon=icon,
+            tooltip=tooltip,
+            icon_color=LABEL,
+            on_click=on_click,
+            mouse_cursor=ft.MouseCursor.CLICK,
+        )
 
     def _first(self) -> None:
         """Jump to the first turn."""

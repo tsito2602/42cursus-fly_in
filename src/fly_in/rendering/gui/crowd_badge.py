@@ -1,14 +1,13 @@
 import flet as ft
 
+from .geometry import Point, top_left
 from .theme import BACKGROUND, DRONE, DRONE_OUTLINE, outline_width
-from .drone_layout import Point, top_left
 
 
 class CrowdBadge(ft.Container):
     """Show how many drones are stacked on one point."""
 
     def __init__(self, radius: float, font: float, point: Point) -> None:
-        self._radius = radius
         self._count = ft.Text(
             value="",
             size=font,

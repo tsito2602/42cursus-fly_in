@@ -1,7 +1,8 @@
 import flet as ft
 import flet.canvas as cv
 
-from fly_in.models import Map, Connection, Zone, ZoneRole, ZoneType
+from fly_in.models import Connection, Map, Zone, ZoneRole, ZoneType
+
 from .theme import (
     DASH_PATTERN,
     LINE,
@@ -14,7 +15,7 @@ from .theme import (
     outline_dashed,
     zone_fill,
 )
-from .view_transform import ViewTransform
+from .transform import ViewTransform
 
 
 class NetworkCanvas(cv.Canvas):
@@ -33,16 +34,16 @@ class NetworkCanvas(cv.Canvas):
 
         shapes: list[cv.Shape] = []
 
-        for connection in map.connections:
-            shapes.extend(self._connection_shapes(connection))
+        for connection in self._map.connections:
+            shapes.append(self._connection_shape(connection))
 
-        for zone in map.zones.values():
+        for zone in self._map.zones.values():
             shapes.extend(self._zone_shapes(zone))
 
         super().__init__(width=width, height=height, shapes=shapes)
 
-    def _connection_shapes(self, connection: Connection) -> list[cv.Shape]:
-        """Return the shapes drawing one connection."""
+    def _connection_shape(self, connection: Connection) -> cv.Shape:
+        """Return the line drawing one connection."""
 
         zone_a = self._map.zones[connection.zone_a]
         zone_b = self._map.zones[connection.zone_b]
@@ -50,19 +51,17 @@ class NetworkCanvas(cv.Canvas):
         x1, y1 = self._transform.to_pixel(zone_a.x, zone_a.y)
         x2, y2 = self._transform.to_pixel(zone_b.x, zone_b.y)
 
-        return [
-            cv.Line(
-                x1=x1,
-                y1=y1,
-                x2=x2,
-                y2=y2,
-                paint=ft.Paint(
-                    color=LINE,
-                    stroke_width=1.0 + connection.capacity * 4.0,
-                    stroke_cap=ft.StrokeCap.ROUND,
-                ),
-            )
-        ]
+        return cv.Line(
+            x1=x1,
+            y1=y1,
+            x2=x2,
+            y2=y2,
+            paint=ft.Paint(
+                color=LINE,
+                stroke_width=1.0 + connection.capacity * 4.0,
+                stroke_cap=ft.StrokeCap.ROUND,
+            ),
+        )
 
     def _zone_shapes(self, zone: Zone) -> list[cv.Shape]:
         """Return the shapes drawing one zone."""

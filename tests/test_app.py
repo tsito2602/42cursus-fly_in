@@ -9,11 +9,12 @@ import pytest
 
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
-from fly_in.rendering.gui.app import Board, FlyInApp
-from fly_in.rendering.gui.drone_layout import DroneLayout, Point
+from fly_in.rendering.gui.app import FlyInApp
+from fly_in.rendering.gui.board import Board
 from fly_in.rendering.gui.crowd_badge import CrowdBadge
+from fly_in.rendering.gui.drone_layout import DroneLayout
 from fly_in.rendering.gui.drone_marker import DroneMarker
-from fly_in.rendering.gui.zone_hotspot import ZoneHotspot
+from fly_in.rendering.gui.geometry import Point
 from fly_in.rendering.gui.theme import (
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -26,11 +27,12 @@ from fly_in.rendering.gui.theme import (
     animation_ms,
     drawn_radius,
     drone_radius,
-    zone_details,
     outline_width,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
+from fly_in.rendering.gui.tooltips import zone_details
 from fly_in.rendering.gui.view_transform import ViewTransform
+from fly_in.rendering.gui.zone_hotspot import ZoneHotspot
 from fly_in.routing import RouteSchedule, Transit
 
 

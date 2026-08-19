@@ -1,5 +1,6 @@
 import flet as ft
 
+from .geometry import Point, top_left
 from .theme import (
     DRONE,
     DRONE_OUTLINE,
@@ -7,14 +8,12 @@ from .theme import (
     animation_ms,
     outline_width,
 )
-from .drone_layout import Point, top_left
 
 
 class DroneMarker(ft.Container):
     """Show one drone as a dot that animates between turns."""
 
     def __init__(self, drone_id: int, radius: float, point: Point) -> None:
-        self._drone_id = drone_id
         self._radius = radius
 
         super().__init__(

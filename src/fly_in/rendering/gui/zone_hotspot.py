@@ -2,8 +2,8 @@ import flet as ft
 
 from fly_in.models import Zone
 
-from .theme import zone_details
-from .drone_layout import Point, top_left
+from .geometry import Point, top_left
+from .tooltips import zone_details
 
 
 class ZoneHotspot(ft.Container):

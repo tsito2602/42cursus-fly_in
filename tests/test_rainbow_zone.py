@@ -4,7 +4,7 @@ import flet as ft
 
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
-from fly_in.rendering.gui.app import Board
+from fly_in.rendering.gui.board import Board
 from fly_in.rendering.gui.rainbow_zone import RainbowZone
 from fly_in.rendering.gui.theme import (
     OUTLINE_WIDTH,

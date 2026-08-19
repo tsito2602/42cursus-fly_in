@@ -8,7 +8,8 @@ import pytest
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
 from fly_in.parsing import MapParser
-from fly_in.rendering.gui.drone_layout import DroneLayout, Point
+from fly_in.rendering.gui.drone_layout import DroneLayout
+from fly_in.rendering.gui.geometry import Point
 from fly_in.rendering.gui.theme import (
     CROWD_THRESHOLD,
     RING_SLOTS,

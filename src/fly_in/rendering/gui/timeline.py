@@ -17,7 +17,6 @@ class TurnState:
     in_flight: int
 
 
-@dataclass
 class SimulationTimeline:
     """Expose a route schedule as an indexable sequence of turn states."""
 

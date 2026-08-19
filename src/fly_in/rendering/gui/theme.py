@@ -2,7 +2,7 @@
 
 from typing import TypeAlias
 
-from fly_in.models import Connection, Zone, ZoneRole, ZoneType
+from fly_in.models import Zone, ZoneRole, ZoneType
 
 CANVAS_WIDTH = 1200
 CANVAS_HEIGHT = 700
@@ -13,7 +13,7 @@ MIN_CANVAS_HEIGHT = 300
 TURN_SECONDS = 0.6
 SPEEDS = (0.5, 1.0, 2.0, 4.0)
 
-RING_SLOTS = 6
+RING_SLOTS = 6  # how many drones fit on the ring drawn around a location
 CROWD_THRESHOLD = RING_SLOTS + 1
 
 BACKGROUND = "#12161c"
@@ -108,37 +108,6 @@ def outline_dashed(zone_type: ZoneType) -> bool:
     """Tell whether a zone type is drawn with a dashed outline."""
 
     return zone_type in DASHED_TYPES
-
-
-def zone_details(zone: Zone) -> str:
-    """Return the lines describing a zone on its tooltip."""
-
-    capacity = "unlimited" if zone.capacity is None else zone.capacity
-    lines = [
-        f"name: {zone.name}",
-        f"type: {zone.zone_type.value}",
-        f"capacity: {capacity}",
-        f"position: ({zone.x}, {zone.y})",
-    ]
-
-    if zone.zone_role is not ZoneRole.HUB:
-        lines.insert(1, f"role: {zone.zone_role.value}")
-
-    if zone.color is not None:
-        lines.append(f"color: {zone.color}")
-
-    return "\n".join(lines)
-
-
-def connection_details(connection: Connection) -> str:
-    """Return the lines describing a connection on its tooltip."""
-
-    return "\n".join(
-        [
-            f"zones: {connection.zone_a} - {connection.zone_b}",
-            f"capacity: {connection.capacity}",
-        ]
-    )
 
 
 def zone_radius(scale: float) -> float:

@@ -4,8 +4,9 @@ import flet as ft
 
 from fly_in.models import Connection
 
-from .theme import LINK_HOVER_THICKNESS, connection_details
-from .drone_layout import Point
+from .geometry import Point
+from .theme import LINK_HOVER_THICKNESS
+from .tooltips import connection_details
 
 
 class LinkHotspot(ft.Container):

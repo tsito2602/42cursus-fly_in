@@ -2,8 +2,8 @@ import flet as ft
 
 from fly_in.models import Zone
 
+from .geometry import Point, top_left
 from .theme import OUTLINE_WIDTH, RAINBOW_COLORS
-from .drone_layout import Point, top_left
 
 
 class RainbowZone(ft.Container):

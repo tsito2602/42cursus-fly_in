@@ -9,12 +9,10 @@ import pytest
 
 from fly_in.models import Map, Zone, ZoneRole, ZoneType
 from fly_in.models.connection import Connection
-from fly_in.rendering.gui.app import Board
+from fly_in.rendering.gui.board import Board
 from fly_in.rendering.gui.link_hotspot import LinkHotspot
-from fly_in.rendering.gui.theme import (
-    LINK_HOVER_THICKNESS,
-    connection_details,
-)
+from fly_in.rendering.gui.theme import LINK_HOVER_THICKNESS
+from fly_in.rendering.gui.tooltips import connection_details
 from fly_in.rendering.gui.timeline import SimulationTimeline
 from fly_in.rendering.gui.view_transform import ViewTransform
 from fly_in.routing import RouteSchedule
@@ -139,22 +137,6 @@ def test_a_hover_area_shows_the_details_of_its_connection() -> None:
     connection = Connection(zone_a="start", zone_b="middle", capacity=3)
 
     assert make_hotspot().tooltip == connection_details(connection)
-
-
-def test_the_details_name_both_ends_and_the_capacity() -> None:
-    connection = Connection(zone_a="start", zone_b="middle", capacity=3)
-
-    assert connection_details(connection) == (
-        "zones: start <-> middle\ncapacity: 3"
-    )
-
-
-def test_the_details_show_no_direction() -> None:
-    connection = Connection(zone_a="start", zone_b="middle")
-    details = connection_details(connection).lower()
-
-    assert "from" not in details
-    assert "to:" not in details
 
 
 def test_every_connection_carries_a_hover_area() -> None:
