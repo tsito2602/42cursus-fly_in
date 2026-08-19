@@ -444,12 +444,11 @@ All source files pass <code>flake8</code> and
 
 ### References
 
-- [Python argparse documentation](https://docs.python.org/3/library/argparse.html)
-- [Python heapq documentation](https://docs.python.org/3/library/heapq.html)
-- [Python dataclasses documentation](https://docs.python.org/3/library/dataclasses.html)
-- [Python typing documentation](https://docs.python.org/3/library/typing.html)
-- [Pydantic documentation](https://docs.pydantic.dev/)
-- [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- [Python argparse documentation](https://docs.python.org/ja/3/library/argparse.html)
+- [Python heapq documentation](https://docs.python.org/ja/3/library/heapq.html)
+- [Python dataclasses documentation](https://docs.python.org/ja/3/library/dataclasses.html)
+- [Pydantic documentation](https://pydantic.dev/docs/validation/latest/get-started/)
+- [A* - Wikipedia](https://ja.wikipedia.org/wiki/A*)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
 
 ### AI usage
@@ -865,12 +864,11 @@ make lint-strict
 
 ### 参考資料
 
-- [Python argparse documentation](https://docs.python.org/3/library/argparse.html)
-- [Python heapq documentation](https://docs.python.org/3/library/heapq.html)
-- [Python dataclasses documentation](https://docs.python.org/3/library/dataclasses.html)
-- [Python typing documentation](https://docs.python.org/3/library/typing.html)
-- [Pydantic documentation](https://docs.pydantic.dev/)
-- [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+- [argparse --- コマンドラインオプションや引数、サブコマンド向けのパーサー](https://docs.python.org/ja/3/library/argparse.html)
+- [heapq --- ヒープキューアルゴリズム](https://docs.python.org/ja/3/library/heapq.html)
+- [dataclasses --- データクラス](https://docs.python.org/ja/3/library/dataclasses.html)
+- [Pydantic documentation](https://pydantic.dev/docs/validation/latest/get-started/)
+- [A* - Wikipedia](https://ja.wikipedia.org/wiki/A*)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
 
 ### AI usage
