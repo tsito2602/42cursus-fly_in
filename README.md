@@ -149,6 +149,7 @@ class _SearchState:
 From there the search is ordinary A*, with three pieces:
 
 **1. Cost function**
+
 Candidates are ranked by the usual `f = g + h`, where `g` is the turn already
 reached and `h` is the estimated turns still to go:
 
@@ -162,6 +163,7 @@ capacity, so it never overestimates — which is what keeps A* optimal. Ties
 are broken in favor of `priority` zones.
 
 **2. Neighbors**
+
 Each state expands into a move to every adjacent zone, plus a one-turn wait in
 place. Waiting is a real option: it is often faster to let a busy corridor
 clear than to detour around it. A move is dropped when the destination is
@@ -169,6 +171,7 @@ clear than to detour around it. A move is dropped when the destination is
 turns involved.
 
 **3. Cooperative reservations**
+
 Drones are planned one at a time. Once a route is found, the turns it occupies
 are recorded in `RouteSchedule`:
 
@@ -261,11 +264,13 @@ the tooltips of the zones involved.
 ### Why Flet rather than tkinter
 
 **Animation**
+
 A marker declares `ft.Animation` once and is then simply given a new position;
 the framework interpolates the frames. In tkinter the same effect means a
 hand-written `after()` loop redrawing every drone on every frame.
 
 **Ready-made widgets**
+
 The slider, the speed button and a layout that refits itself on resize come
 with the toolkit, instead of being built and repositioned by hand.
 
@@ -464,6 +469,7 @@ class _SearchState:
 あとは通常のA*と変わらない。要点は3つある。
 
 **1. コスト関数**
+
 候補の順位は`f = g + h`で決める。`g`はそこへ着くまでにかかったターン数、
 `h`はgoalまでに残ると見込まれるターン数である。
 
@@ -477,12 +483,14 @@ f(state) = state.turn + min_turns_to_goal[state.zone_name]
 同点の候補があれば`priority`ゾーンを選ぶ。
 
 **2. 候補の展開**
+
 ひとつの状態からは、隣のゾーンへの移動と、その場で1ターン待つ選択肢を作る。
 待機も立派な一手で、混んだ通路が空くのを待つほうが遠回りより速いことは
 珍しくない。行き先が`blocked`のとき、あるいはそのターンのゾーンや接続が
 すでに埋まっているときは、その移動は作らない。
 
 **3. 協調的な予約**
+
 ドローンは1機ずつ順に計画する。経路が決まった機は、自分が占める時刻と場所を
 `RouteSchedule`に書き込む。
 
@@ -571,11 +579,13 @@ flowchart TD
 ### Why Flet rather than tkinter
 
 **アニメーション**
+
 マーカーに`ft.Animation`を一度宣言しておけば、あとは新しい座標を渡すだけで、
 間のフレームはフレームワークが補間してくれる。tkinterで同じことをするなら、
 `after()`のループを自分で回して毎フレーム全機を描き直すことになる。
 
 **出来合いのUI部品**
+
 スライダー、速度ボタン、ウィンドウの伸縮に追従するレイアウトが最初から
 揃っている。tkinterでは自分で組み立て、位置を計算し直す必要がある。
 
