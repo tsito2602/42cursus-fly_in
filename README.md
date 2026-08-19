@@ -136,7 +136,7 @@ Plain A* answers "which zone comes next?". That is not enough here: a zone
 that is full on turn 3 may be free on turn 4, so the same zone can be both a
 dead end and a good move depending on the timing.
 
-**Space-Time A\*** solves this by putting the clock inside the search state.
+`Space-Time A*` solves this by putting the clock inside the search state.
 A node is not a zone but a zone *at a given turn*:
 
 ~~~python
@@ -148,8 +148,9 @@ class _SearchState:
 
 From there the search is ordinary A*, with three pieces:
 
-**1. Cost function.** Candidates are ranked by the usual `f = g + h`, where
-`g` is the turn already reached and `h` is the estimated turns still to go:
+**1. Cost function**
+Candidates are ranked by the usual `f = g + h`, where `g` is the turn already
+reached and `h` is the estimated turns still to go:
 
 ~~~text
 f(state) = state.turn + min_turns_to_goal[state.zone_name]
@@ -160,14 +161,16 @@ done once before any drone is planned and reused by all of them. It ignores
 capacity, so it never overestimates — which is what keeps A* optimal. Ties
 are broken in favor of `priority` zones.
 
-**2. Neighbors.** Each state expands into a move to every adjacent zone, plus
-a one-turn wait in place. Waiting is a real option: it is often faster to let
-a busy corridor clear than to detour around it. A move is dropped when the
-destination is `blocked`, or when the zone or the connection is already fully
-booked for the turns involved.
+**2. Neighbors**
+Each state expands into a move to every adjacent zone, plus a one-turn wait in
+place. Waiting is a real option: it is often faster to let a busy corridor
+clear than to detour around it. A move is dropped when the destination is
+`blocked`, or when the zone or the connection is already fully booked for the
+turns involved.
 
-**3. Cooperative reservations.** Drones are planned one at a time. Once a
-route is found, the turns it occupies are recorded in `RouteSchedule`:
+**3. Cooperative reservations**
+Drones are planned one at a time. Once a route is found, the turns it occupies
+are recorded in `RouteSchedule`:
 
 ~~~python
 ZoneSlot       = tuple[int, str]        # (turn, zone)          -> drones inside
@@ -203,12 +206,6 @@ flowchart TD
     K --> C
     C -- No --> L[Render the schedule]
 ~~~
-
-**Trade-off.** Each drone is optimal given the drones planned before it, but
-the fleet as a whole is not searched jointly. This keeps conflict handling
-simple and comfortably beats every target on the provided maps. The candidate
-list is a plain list scanned linearly rather than a heap, since the subject
-scores simulation turns, not planner runtime.
 
 ## Visualizer
 
@@ -263,14 +260,14 @@ the tooltips of the zones involved.
 
 ### Why Flet rather than tkinter
 
-**Animation.** A marker declares `ft.Animation` once and is then simply given
-a new position; the framework interpolates the frames. In tkinter the same
-effect means a hand-written `after()` loop redrawing every drone on every
-frame.
+**Animation**
+A marker declares `ft.Animation` once and is then simply given a new position;
+the framework interpolates the frames. In tkinter the same effect means a
+hand-written `after()` loop redrawing every drone on every frame.
 
-**Ready-made widgets.** The slider, the speed button and a layout that refits
-itself on resize come with the toolkit, instead of being built and
-repositioned by hand.
+**Ready-made widgets**
+The slider, the speed button and a layout that refits itself on resize come
+with the toolkit, instead of being built and repositioned by hand.
 
 tkinter's advantage is needing no dependency at all, but `make install`
 already covers that.
@@ -454,7 +451,7 @@ D2-goal
 足りない。3ターン目には満員のゾーンが、4ターン目には空いていることがある。
 同じゾーンが、通るタイミング次第で行き止まりにも最短手にもなるのだ。
 
-**Space-Time A\***は、探索の状態そのものに時刻を持たせてこれを解く。ノードは
+`Space-Time A\*`は、探索の状態そのものに時刻を持たせてこれを解く。ノードは
 ゾーンではなく「何ターン目のどのゾーンか」になる。
 
 ~~~python
@@ -466,8 +463,9 @@ class _SearchState:
 
 あとは通常のA*と変わらない。要点は3つある。
 
-**1. コスト関数。** 候補の順位は`f = g + h`で決める。`g`はそこへ着くまでに
-かかったターン数、`h`はgoalまでに残ると見込まれるターン数である。
+**1. コスト関数**
+候補の順位は`f = g + h`で決める。`g`はそこへ着くまでにかかったターン数、
+`h`はgoalまでに残ると見込まれるターン数である。
 
 ~~~text
 f(state) = state.turn + min_turns_to_goal[state.zone_name]
@@ -478,13 +476,15 @@ f(state) = state.turn + min_turns_to_goal[state.zone_name]
 無視した値なので実際の残りターン数を超えることはなく、A*の最適性は保たれる。
 同点の候補があれば`priority`ゾーンを選ぶ。
 
-**2. 候補の展開。** ひとつの状態からは、隣のゾーンへの移動と、その場で1ターン
-待つ選択肢を作る。待機も立派な一手で、混んだ通路が空くのを待つほうが遠回りより
-速いことは珍しくない。行き先が`blocked`のとき、あるいはそのターンのゾーンや
-接続がすでに埋まっているときは、その移動は作らない。
+**2. 候補の展開**
+ひとつの状態からは、隣のゾーンへの移動と、その場で1ターン待つ選択肢を作る。
+待機も立派な一手で、混んだ通路が空くのを待つほうが遠回りより速いことは
+珍しくない。行き先が`blocked`のとき、あるいはそのターンのゾーンや接続が
+すでに埋まっているときは、その移動は作らない。
 
-**3. 協調的な予約。** ドローンは1機ずつ順に計画する。経路が決まった機は、自分が
-占める時刻と場所を`RouteSchedule`に書き込む。
+**3. 協調的な予約**
+ドローンは1機ずつ順に計画する。経路が決まった機は、自分が占める時刻と場所を
+`RouteSchedule`に書き込む。
 
 ~~~python
 ZoneSlot       = tuple[int, str]        # (ターン, ゾーン)       -> 中にいる機数
@@ -519,12 +519,6 @@ flowchart TD
     K --> C
     C -- いいえ --> L["結果を出力する"]
 ~~~
-
-**割り切ったところ。** 各機の経路は、先に計画した機の予約を前提とすれば最適だが、
-全機の組み合わせを同時に探索しているわけではない。この方式なら衝突の扱いが単純に
-済み、提供されたマップはこれで十分目標に届く。候補の管理もヒープを使わず、
-リストを走査するだけにした。課題が評価するのはシミュレーションのターン数であって、
-計画にかかった時間ではないからである。
 
 ## Visualizer
 
@@ -576,14 +570,14 @@ flowchart TD
 
 ### Why Flet rather than tkinter
 
-**アニメーション。** マーカーに`ft.Animation`を一度宣言しておけば、あとは新しい
-座標を渡すだけで、間のフレームはフレームワークが補間してくれる。tkinterで同じ
-ことをするなら、`after()`のループを自分で回して毎フレーム全機を描き直すことに
-なる。
+**アニメーション**
+マーカーに`ft.Animation`を一度宣言しておけば、あとは新しい座標を渡すだけで、
+間のフレームはフレームワークが補間してくれる。tkinterで同じことをするなら、
+`after()`のループを自分で回して毎フレーム全機を描き直すことになる。
 
-**出来合いのUI部品。** スライダー、速度ボタン、ウィンドウの伸縮に追従する
-レイアウトが最初から揃っている。tkinterでは自分で組み立て、位置を計算し直す
-必要がある。
+**出来合いのUI部品**
+スライダー、速度ボタン、ウィンドウの伸縮に追従するレイアウトが最初から
+揃っている。tkinterでは自分で組み立て、位置を計算し直す必要がある。
 
 tkinterの利点は依存を1つも増やさずに済むことだが、そこは`make install`が
 引き受けている。
