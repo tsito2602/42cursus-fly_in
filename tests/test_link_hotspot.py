@@ -14,7 +14,7 @@ from fly_in.rendering.gui.link_hotspot import LinkHotspot
 from fly_in.rendering.gui.theme import LINK_HOVER_THICKNESS
 from fly_in.rendering.gui.tooltips import connection_details
 from fly_in.rendering.gui.timeline import SimulationTimeline
-from fly_in.rendering.gui.view_transform import ViewTransform
+from fly_in.rendering.gui.transform import ViewTransform
 from fly_in.routing import RouteSchedule
 
 START = (100.0, 50.0)

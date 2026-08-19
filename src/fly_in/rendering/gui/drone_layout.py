@@ -103,7 +103,8 @@ class DroneLayout:
         """Return one corner of the polygon drawn around a location."""
 
         center_x, center_y = center
-        angle = 2.0 * math.pi * index / sides - math.pi / 2.0
+        start = 0.0 if sides == 2 else -math.pi / 2.0
+        angle = 2.0 * math.pi * index / sides + start
 
         return (
             center_x + self._spacing * math.cos(angle),

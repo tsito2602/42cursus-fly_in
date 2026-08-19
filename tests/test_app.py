@@ -31,7 +31,7 @@ from fly_in.rendering.gui.theme import (
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
 from fly_in.rendering.gui.tooltips import zone_details
-from fly_in.rendering.gui.view_transform import ViewTransform
+from fly_in.rendering.gui.transform import ViewTransform
 from fly_in.rendering.gui.zone_hotspot import ZoneHotspot
 from fly_in.routing import RouteSchedule, Transit
 

@@ -16,7 +16,7 @@ from fly_in.rendering.gui.theme import (
     drone_radius,
 )
 from fly_in.rendering.gui.timeline import SimulationTimeline
-from fly_in.rendering.gui.view_transform import ViewTransform
+from fly_in.rendering.gui.transform import ViewTransform
 from fly_in.routing import RoutePlanner, Route, RouteSchedule, Transit
 
 WIDTH = 1200
@@ -121,6 +121,15 @@ def test_two_drones_sit_on_opposite_sides_of_the_center() -> None:
 
     assert midpoint(first, second) == pytest.approx(center)
     assert distance(first, second) == pytest.approx(spacing_of(2) * 2.0)
+
+
+def test_two_drones_sit_side_by_side() -> None:
+    layout = make_crowd(2)
+    _, center_y = center_of("start", 2)
+    first, second = layout.points_at(0)[1], layout.points_at(0)[2]
+
+    assert first[1] == pytest.approx(center_y)
+    assert second[1] == pytest.approx(center_y)
 
 
 @pytest.mark.parametrize("nb_drones", range(2, RING_SLOTS + 1))

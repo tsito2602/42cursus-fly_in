@@ -14,7 +14,7 @@ from fly_in.rendering.gui.theme import (
     ROLE_COLORS,
     zone_fill,
 )
-from fly_in.rendering.gui.view_transform import ViewTransform
+from fly_in.rendering.gui.transform import ViewTransform
 
 WIDTH = CANVAS_WIDTH
 HEIGHT = CANVAS_HEIGHT
