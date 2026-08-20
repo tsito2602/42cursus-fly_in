@@ -291,7 +291,9 @@ def test_the_status_counts_delivered_drones() -> None:
     for _ in range(3):
         press(app, "Arrow Right")
 
-    assert app._status.value == "Turn 3 / 3   Delivered 2   In flight 0"
+    assert app._status.value == (
+        "Turn 3 / 3   Delivered 2 / 2   In flight 0"
+    )
 
 
 def test_the_status_counts_drones_in_flight() -> None:
@@ -299,7 +301,9 @@ def test_the_status_counts_drones_in_flight() -> None:
 
     press(app, "Arrow Right")
 
-    assert app._status.value == "Turn 1 / 3   Delivered 0   In flight 1"
+    assert app._status.value == (
+        "Turn 1 / 3   Delivered 0 / 2   In flight 1"
+    )
 
 
 def run(work: Coroutine[Any, Any, None]) -> None:

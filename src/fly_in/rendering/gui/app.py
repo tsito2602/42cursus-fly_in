@@ -28,6 +28,7 @@ class FlyInApp:
         timeline = SimulationTimeline(map, schedule)
 
         self._timeline = timeline
+        self._total_drones = map.nb_drones
         self._turn = 0
         self._playing = False
         self._speed_index = SPEEDS.index(1.0)
@@ -89,7 +90,8 @@ class FlyInApp:
 
         return (
             f"Turn {self._turn} / {self._timeline.last_turn}   "
-            f"Delivered {state.delivered}   In flight {state.in_flight}"
+            f"Delivered {state.delivered} / {self._total_drones}   "
+            f"In flight {state.in_flight}"
         )
 
     def _interval(self) -> float:
