@@ -3,7 +3,7 @@
 <h1 align="center">Fly-in</h1>
 
 <p align="center">
-  <strong>Space-Time A* route planning for a fleet of autonomous drones</strong>
+  <strong>Conflict-free route planning for a fleet of autonomous drones</strong>
   <br>
   Move every drone through a capacity-constrained network in as few turns as possible.
 </p>
@@ -28,17 +28,16 @@
 
 ## Description
 
-Fly-in is a project from the 42 curriculum that focuses on designing an
-efficient drone-routing system. The program reads a graph of zones connected
-by bidirectional links and routes a fleet of drones from the start zone
-(`start_hub`) to the end zone (`end_hub`). The main objective is to move
-every drone to the end zone in the fewest possible simulation turns.
+Fly-in is a 42 curriculum project to build a drone route-planning simulation.
+It reads a network of zones and bidirectional connections, then schedules a
+fleet of drones from a unique start hub to a unique end hub. The objective is
+to deliver every drone in as few simulation turns as possible.
 
-Drones can move simultaneously, but every move must respect the capacity of
-both zones and connections. The planner must account for the movement costs of
-different zone types, distribute drones across multiple paths, wait when
-movement is not possible, and avoid conflicts and deadlocks. The simulation
-also provides visual feedback showing the network and drone positions.
+Drones can move simultaneously, but each turn must respect zone capacities,
+connection capacities, blocked zones, and the additional movement cost of
+restricted zones. The planner combines a space-time route search with
+cooperative reservations, allowing later drones to choose another path or
+wait when a resource is already reserved.
 
 As required by the subject, the project is fully object-oriented and type-safe.
 Its graph logic is implemented without libraries such as `networkx` or
@@ -52,6 +51,8 @@ Requirements: Python 3.10+ and [uv](https://docs.astral.sh/uv/).
 make install                                     # install dependencies
 make run                                         # run the default easy map
 make run MAP=maps/hard/01_maze_nightmare.txt     # run any map
+make gui                                         # run the default map with the GUI
+make gui MAP=maps/hard/01_maze_nightmare.txt     # run any map with the GUI
 ~~~
 
 `make run` is a shortcut for:
@@ -73,6 +74,7 @@ Development commands:
 make test         # run the pytest suite
 make lint         # flake8 and mypy
 make lint-strict  # flake8 and mypy --strict
+make gui          # run with the visualizer
 make debug        # run under Python's debugger
 make clean        # remove Python caches
 ~~~
@@ -150,7 +152,12 @@ class _SearchState:
     zone_name: str
 ~~~
 
-From there, the search proceeds like ordinary A*, with three key elements:
+The scheduling strategy is based on ideas from Cooperative Pathfinding:
+drones are planned sequentially, and each completed route reserves the zones
+and connections it uses over time. Later drones treat those reservations as
+constraints during their own search.
+
+From there, the search proceeds with three key elements:
 
 **1. Cost function**
 
@@ -161,10 +168,10 @@ reached and `h` is the estimated turns still to go:
 f(state) = state.turn + min_turns_to_goal[state.zone_name]
 ~~~
 
-`min_turns_to_goal` comes from a single backward Dijkstra run from the goal,
-done once before any drone is planned and reused by all of them. It ignores
-capacity, so it never overestimates — which is what keeps A* optimal. Ties
-are broken in favor of `priority` zones.
+`min_turns_to_goal` comes from a single backward weighted search from the
+goal, done once before any drone is planned and reused by all of them. It
+provides the estimate used to order candidates. Ties are broken in favor of
+`priority` zones.
 
 **2. Neighbors**
 
@@ -187,6 +194,10 @@ ConnectionSlot = tuple[int, str, str]   # (turn, zone_a, zone_b) -> drones cross
 Connection endpoints are sorted before they are used as a key, so travel in
 either direction consumes the same shared capacity. The next drone treats
 those reservations as constraints and either routes around them or waits.
+
+This strategy finds an early valid route for each drone while accounting for
+the routes already scheduled. Because drones are planned sequentially, it
+does not claim to find the globally optimal fleet schedule for every graph.
 
 Entering a `restricted` zone takes two turns, spent on the connection itself:
 
@@ -330,6 +341,7 @@ All source files pass `flake8` and `mypy --strict`.
 - [Pydantic](https://pydantic.dev/docs/validation/latest/get-started/)
 - [A* — Wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
+  — referenced for sequential agent planning and space-time reservations
 - [Flet](https://flet.dev/docs)
 
 ### AI usage
@@ -359,16 +371,15 @@ understanding, explaining, and maintaining all submitted code.
 
 ## Description
 
-Fly-inは、効率的なドローン経路システムを設計する42cursusの課題である。プログラム
-は、双方向の接続で結ばれたゾーンのグラフを読み込み、ドローンの一団をスタート地点
-（`start_hub`）からゴール地点（`end_hub`）まで移動させる。主な目的は、すべての
-ドローンを可能な限り少ないシミュレーションターンでendゾーンへ到着させることで
-ある。
+Fly-inは、ドローン経路探索シミュレーションを作成する42cursusの課題である。
+ゾーンと双方向接続からなるネットワークを読み込み、複数のドローンを一意なstart
+hubから一意なend hubまで移動させる。目的は、すべてのドローンを可能な限り少ない
+シミュレーションターンで到着させることである。
 
-ドローンは同時に移動できるが、すべての移動でゾーンと接続の収容数を守る必要が
-ある。経路計画では、ゾーン種別ごとの移動コストを考慮し、複数経路へのドローンの
-分散、移動できない場合の待機、競合とデッドロックの回避を行う。また、ネットワーク
-とドローンの位置を示す視覚的なフィードバックも提供する。
+ドローンは同時に移動できるが、各ターンでゾーンと接続の収容数、blockedゾーン、
+restrictedゾーンの追加移動コストを守る必要がある。プランナーは空間と時間を含む
+経路探索と協調的な予約を組み合わせ、予約済みの場所を後続のドローンが迂回するか、
+空くまで待機できるようにする。
 
 課題の要件に従い、プロジェクト全体をオブジェクト指向かつ型安全に実装している。
 グラフ処理には`networkx`や`graphlib`などのライブラリを使用せず、コードは
@@ -382,6 +393,8 @@ Fly-inは、効率的なドローン経路システムを設計する42cursusの
 make install                                     # 依存パッケージを入れる
 make run                                         # 既定のeasyマップを実行する
 make run MAP=maps/hard/01_maze_nightmare.txt     # マップを指定して実行する
+make gui                                         # 既定のマップをGUI付きで実行する
+make gui MAP=maps/hard/01_maze_nightmare.txt     # 指定したマップをGUI付きで実行する
 ~~~
 
 `make run`は次のコマンドの短縮形である。
@@ -402,6 +415,7 @@ uv run fly-in maps/hard/01_maze_nightmare.txt --gui
 make test         # pytestを実行する
 make lint         # flake8とmypyを実行する
 make lint-strict  # flake8とmypy --strictを実行する
+make gui          # 可視化付きで実行する
 make debug        # デバッガ付きで実行する
 make clean        # Pythonのキャッシュを削除する
 ~~~
@@ -478,7 +492,11 @@ class _SearchState:
     zone_name: str
 ~~~
 
-以降の探索は通常のA*と同様である。要点は3つある。
+スケジューリング戦略は、[Cooperative Pathfinding](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)の考え方を参考にしている。
+ドローンを順番に計画し、確定した経路が使用するゾーンと接続を時間ごとに予約する。
+後続のドローンは、それらの予約を制約として自身の経路を探索する。
+
+探索の要点は3つある。
 
 **1. コスト関数**
 
@@ -489,10 +507,9 @@ class _SearchState:
 f(state) = state.turn + min_turns_to_goal[state.zone_name]
 ~~~
 
-`min_turns_to_goal`は、goalから逆向きにダイクストラ法を1回走らせて作る表である。
-どの機の計画よりも先に一度だけ計算し、以降は全機で使い回す。収容数の制約を
-無視した値なので実際の残りターン数を超えることはなく、A*の最適性は保たれる。
-同点の候補があれば`priority`ゾーンを選ぶ。
+`min_turns_to_goal`は、goalから逆向きの重み付き探索を1回行って作る表である。
+どの機の計画よりも先に一度だけ計算し、以降は全機で使い回す。探索候補はこの値を
+見積もりとして並べ、同点であれば`priority`ゾーンを選ぶ。
 
 **2. 候補の展開**
 
@@ -514,6 +531,10 @@ ConnectionSlot = tuple[int, str, str]   # (ターン, ゾーンa, ゾーンb) ->
 接続は両端の名前を並べ替えてからキーとして使うため、どちらの方向に通過しても
 同じ収容数を消費する。次の機体はこの予約を制約として扱い、迂回するか、空くまで
 待機する。
+
+この方式では、すでに確定した経路を考慮しながら、各ドローンについて早く到着
+できる有効な経路を探索する。ドローンを順番に計画する方式であるため、あらゆる
+グラフにおいてドローン全体の大域的な最適解が得られるとは限らない。
 
 `restricted`ゾーンに入るには2ターンかかり、そのうち1ターンは接続の上で過ごす。
 
@@ -652,6 +673,7 @@ src/fly_in/
 - [Pydantic](https://pydantic.dev/docs/validation/latest/get-started/)
 - [A* - Wikipedia](https://ja.wikipedia.org/wiki/A*)
 - [Cooperative Pathfinding — David Silver](https://cw.fel.cvut.cz/b211/_media/courses/b3m33mkr/coop-path-aiwisdom.pdf)
+  — エージェントを順番に計画し、空間と時間を予約する方式の参考資料
 - [Flet](https://flet.dev/docs)
 
 ### AI usage
