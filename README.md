@@ -26,6 +26,10 @@
   <a href="#japanese">Japanese</a>
 </p>
 
+<p align="center">
+  <img src="assets/fly-in-demo.gif" alt="Fly-in visualizer replaying the maze nightmare map" width="900">
+</p>
+
 ## Description
 
 Fly-in is a 42 curriculum project to build a drone route-planning simulation.
@@ -209,20 +213,15 @@ turn 2: restricted
 
 ~~~mermaid
 flowchart TD
-    A["Load and validate<br/>the map"] --> B["Precompute minimum<br/>turns to the goal"]
-    B --> C{"Any drone<br/>left to plan?"}
-    C -- Yes --> D["Start at the start zone<br/>on turn 0"]
-    D --> E["Pop the candidate<br/>with the lowest f"]
-    E --> F{At the goal?}
-    F -- No --> G["Expand moves<br/>and one-turn wait"]
-    G --> H{"Zone and connection<br/>available?"}
-    H -- No --> E
-    H -- Yes --> I["Queue the new<br/>space-time state"]
-    I --> E
-    F -- Yes --> J["Rebuild the route<br/>with Transit states"]
-    J --> K["Reserve zones<br/>and connections"]
-    K --> C
-    C -- No --> L[Render the schedule]
+    A["Load and validate the map"] --> B["Precompute goal-distance estimates"]
+    B --> C["Select the next drone"]
+    C --> D["Search for a route using<br/>current reservations"]
+    D --> E{"Route found?"}
+    E -- No --> F["Report that no valid route exists"]
+    E -- Yes --> G["Reserve the route's<br/>zones and connections"]
+    G --> H{"All drones planned?"}
+    H -- No --> C
+    H -- Yes --> I["Render the completed schedule"]
 ~~~
 
 ## Visualizer
@@ -546,20 +545,15 @@ ConnectionSlot = tuple[int, str, str]   # (ターン, ゾーンa, ゾーンb) ->
 
 ~~~mermaid
 flowchart TD
-    A["マップを読み込み<br/>検証する"] --> B["goalまでの最小ターン数を<br/>先に求める"]
-    B --> C{"未計画の機体が<br/>残っている?"}
-    C -- はい --> D["startゾーンの<br/>ターン0から始める"]
-    D --> E["fが最小の候補を<br/>取り出す"]
-    E --> F{"goalに着いた?"}
-    F -- いいえ --> G["移動と1ターンの<br/>待機を作る"]
-    G --> H{"ゾーンと接続を<br/>利用できる?"}
-    H -- いいえ --> E
-    H -- はい --> I["新しい状態を<br/>候補に加える"]
-    I --> E
-    F -- はい --> J["Transitを含む経路を<br/>復元する"]
-    J --> K["ゾーンと接続を<br/>予約する"]
-    K --> C
-    C -- いいえ --> L["結果を出力する"]
+    A["マップを読み込んで検証する"] --> B["goalまでの距離を事前計算する"]
+    B --> C["次のドローンを選ぶ"]
+    C --> D["現在の予約を考慮して<br/>経路を探索する"]
+    D --> E{"経路が見つかった?"}
+    E -- いいえ --> F["有効な経路がないことを通知する"]
+    E -- はい --> G["経路が使うゾーンと<br/>接続を予約する"]
+    G --> H{"全機の計画が完了した?"}
+    H -- いいえ --> C
+    H -- はい --> I["完成したスケジュールを出力する"]
 ~~~
 
 ## Visualizer
