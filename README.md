@@ -233,7 +233,7 @@ possible to verify the planner's constraints directly in the visualization:
 
 | Channel | Meaning |
 | --- | --- |
-| Fill color | `color=` metadata, otherwise the zone type |
+| Fill color | Supported `color=` value; unsupported or absent values use the zone type |
 | Rainbow gradient | `color=rainbow`, swept around the zone center |
 | Outline color | Zone type |
 | Dashed outline | `restricted` or `blocked` |
@@ -559,7 +559,7 @@ flowchart TD
 
 | 表現 | 意味 |
 | --- | --- |
-| 塗りの色 | `color=`の指定。無ければゾーンの種類の色 |
+| 塗りの色 | 対応済みの`color=`。未対応または未指定ならゾーンの種類の色 |
 | 虹色のグラデーション | `color=rainbow`。色が円周を一周する |
 | 輪郭の色 | ゾーンの種類 |
 | 破線の輪郭 | `restricted`または`blocked` |
