@@ -209,18 +209,18 @@ turn 2: restricted
 
 ~~~mermaid
 flowchart TD
-    A[Load and validate the map] --> B[Precompute min turns to goal]
-    B --> C{Any drone left to plan?}
-    C -- Yes --> D["Start from (start zone, turn 0)"]
-    D --> E["Pop the candidate with the lowest f"]
+    A["Load and validate<br/>the map"] --> B["Precompute minimum<br/>turns to the goal"]
+    B --> C{"Any drone<br/>left to plan?"}
+    C -- Yes --> D["Start at the start zone<br/>on turn 0"]
+    D --> E["Pop the candidate<br/>with the lowest f"]
     E --> F{At the goal?}
-    F -- No --> G["Expand: moves and one-turn wait"]
-    G --> H{Zone and connection free on those turns?}
+    F -- No --> G["Expand moves<br/>and one-turn wait"]
+    G --> H{"Zone and connection<br/>available?"}
     H -- No --> E
-    H -- Yes --> I[Queue the new space-time state]
+    H -- Yes --> I["Queue the new<br/>space-time state"]
     I --> E
-    F -- Yes --> J[Rebuild the route with Transit states]
-    J --> K[Reserve its zones and connections]
+    F -- Yes --> J["Rebuild the route<br/>with Transit states"]
+    J --> K["Reserve zones<br/>and connections"]
     K --> C
     C -- No --> L[Render the schedule]
 ~~~
@@ -546,18 +546,18 @@ ConnectionSlot = tuple[int, str, str]   # (ターン, ゾーンa, ゾーンb) ->
 
 ~~~mermaid
 flowchart TD
-    A["マップを読み込んで検証する"] --> B["goalまでの最小ターン数を先に求める"]
-    B --> C{"まだ計画していない機がいる?"}
-    C -- はい --> D["startゾーンのターン0から始める"]
-    D --> E["fが最小の候補を取り出す"]
+    A["マップを読み込み<br/>検証する"] --> B["goalまでの最小ターン数を<br/>先に求める"]
+    B --> C{"未計画の機体が<br/>残っている?"}
+    C -- はい --> D["startゾーンの<br/>ターン0から始める"]
+    D --> E["fが最小の候補を<br/>取り出す"]
     E --> F{"goalに着いた?"}
-    F -- いいえ --> G["移動と1ターンの待機を作る"]
-    G --> H{"そのターンにゾーンと接続は空いている?"}
+    F -- いいえ --> G["移動と1ターンの<br/>待機を作る"]
+    G --> H{"ゾーンと接続を<br/>利用できる?"}
     H -- いいえ --> E
-    H -- はい --> I["新しい状態を候補に加える"]
+    H -- はい --> I["新しい状態を<br/>候補に加える"]
     I --> E
-    F -- はい --> J["経路をTransitごと復元する"]
-    J --> K["通るゾーンと接続を予約する"]
+    F -- はい --> J["Transitを含む経路を<br/>復元する"]
+    J --> K["ゾーンと接続を<br/>予約する"]
     K --> C
     C -- いいえ --> L["結果を出力する"]
 ~~~
