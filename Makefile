@@ -1,12 +1,15 @@
 MAP ?= maps/easy/01_linear_path.txt
 
-.PHONY: install run debug clean lint lint-strict test
+.PHONY: install run gui debug clean lint lint-strict test
 
 install:
 	uv sync
 
 run:
 	uv run fly-in "$(MAP)"
+
+gui:
+	uv run fly-in "$(MAP)" --gui
 
 debug:
 	uv run python -m pdb -m fly_in.main "$(MAP)"
