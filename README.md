@@ -213,15 +213,15 @@ turn 2: restricted
 
 ~~~mermaid
 flowchart TD
-    A["Load and validate the map"] --> B["Precompute goal-distance estimates"]
+    A["Load and validate the map"] --> B["Precompute goal-distance<br/>estimates"]
     B --> C["Select the next drone"]
     C --> D["Search for a route using<br/>current reservations"]
     D --> E{"Route found?"}
-    E -- No --> F["Report that no valid route exists"]
+    E -- No --> F["Report that no valid<br/>route exists"]
     E -- Yes --> G["Reserve the route's<br/>zones and connections"]
     G --> H{"All drones planned?"}
     H -- No --> C
-    H -- Yes --> I["Render the completed schedule"]
+    H -- Yes --> I["Render the completed<br/>schedule"]
 ~~~
 
 ## Visualizer
@@ -545,15 +545,15 @@ ConnectionSlot = tuple[int, str, str]   # (ターン, ゾーンa, ゾーンb) ->
 
 ~~~mermaid
 flowchart TD
-    A["マップを読み込んで検証する"] --> B["goalまでの距離を事前計算する"]
+    A["マップを読み込んで<br/>検証する"] --> B["各ゾーンからgoalまでの距離を<br/>事前計算する"]
     B --> C["次のドローンを選ぶ"]
     C --> D["現在の予約を考慮して<br/>経路を探索する"]
     D --> E{"経路が見つかった?"}
-    E -- いいえ --> F["有効な経路がないことを通知する"]
+    E -- いいえ --> F["有効な経路がないことを<br/>通知する"]
     E -- はい --> G["経路が使うゾーンと<br/>接続を予約する"]
     G --> H{"全機の計画が完了した?"}
     H -- いいえ --> C
-    H -- はい --> I["完成したスケジュールを出力する"]
+    H -- はい --> I["完成したスケジュールを<br/>出力する"]
 ~~~
 
 ## Visualizer
